@@ -19,7 +19,7 @@ interface SidebarProps {
 const menuItems = [
   {
     label: "Dashboard",
-    href: "/quotation/dashboard",
+    href: "/",
     icon: MdDashboard,
   },
   {

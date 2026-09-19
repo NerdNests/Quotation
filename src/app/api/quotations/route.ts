@@ -4,6 +4,7 @@ import { prisma } from "@/libs/prisma";
 export const dynamic = "force-dynamic";
 
 type ServiceInput = { name?: unknown; description?: unknown; quantity?: unknown; price?: unknown };
+type NormalizedService = { serviceName: string; description: string | null; quantity: number | null; price: number | null };
 
 const asNumber = (value: unknown) => {
   const number = Number(value);
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
     const validUntil = asDate(quotation.validUntil);
     if (!quotationDate || !validUntil) return NextResponse.json({ message: "A valid quotation date and valid-until date are required" }, { status: 400 });
 
-    const services = rawServices.map((service: ServiceInput) => ({
+    const services: NormalizedService[] = rawServices.map((service: ServiceInput) => ({
       serviceName: typeof service.name === "string" ? service.name.trim() : "",
       description: typeof service.description === "string" && service.description.trim() ? service.description.trim() : null,
       quantity: asNumber(service.quantity),
@@ -72,5 +73,27 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Quotation save error:", error);
     return NextResponse.json({ success: false, message: "Failed to save quotation" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const statuses = ["DRAFT", "SENT", "WON", "DROPPED"] as const;
+
+    if (typeof body?.id !== "string" || !body.id.trim() || !statuses.includes(body.status)) {
+      return NextResponse.json({ message: "A quotation id and valid status are required" }, { status: 400 });
+    }
+
+    const quotation = await prisma.quotation.update({
+      where: { quotationNumber: body.id.trim() },
+      data: { status: body.status },
+      select: { quotationNumber: true, status: true },
+    });
+
+    return NextResponse.json({ quotation });
+  } catch (error) {
+    console.error("Quotation status update error:", error);
+    return NextResponse.json({ message: "Failed to update quotation status" }, { status: 500 });
   }
 }

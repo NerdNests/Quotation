@@ -8,6 +8,8 @@ import {
     MdDescription,
     MdReceiptLong,
 } from "react-icons/md";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/light.css";
 
 export type Service = {
     id: number;
@@ -89,7 +91,7 @@ export default function QuotationForm({
     addService,
     removeService,
     updateService,
-}: Props) {
+}: Readonly<Props>) {
     const formatCurrency = (value: number) =>
         new Intl.NumberFormat("en-IN", {
             style: "currency",
@@ -120,27 +122,41 @@ export default function QuotationForm({
                         }
                     />
 
-                    <Input
-                        label="Quotation Date"
-                        value={quotation.date}
-                        onChange={(value) =>
-                            setQuotation((current) => ({
-                                ...current,
-                                date: value,
-                            }))
-                        }
-                    />
+                    <div>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600">
+                            Quotation Date
+                        </label>
+                        <Flatpickr
+                            value={quotation.date}
+                            onChange={(_, dateStr) =>
+                                setQuotation((current) => ({
+                                    ...current,
+                                    date: dateStr,
+                                }))
+                            }
+                            options={{ dateFormat: "d/m/Y" }}
+                            className="w-full rounded-xl border border-slate-200/60 bg-white/50 px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white/80 focus:ring-2 focus:ring-indigo-500/10"
+                            placeholder="Select date"
+                        />
+                    </div>
 
-                    <Input
-                        label="Valid Until"
-                        value={quotation.validUntil}
-                        onChange={(value) =>
-                            setQuotation((current) => ({
-                                ...current,
-                                validUntil: value,
-                            }))
-                        }
-                    />
+                    <div>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600">
+                            Valid Until
+                        </label>
+                        <Flatpickr
+                            value={quotation.validUntil}
+                            onChange={(_, dateStr) =>
+                                setQuotation((current) => ({
+                                    ...current,
+                                    validUntil: dateStr,
+                                }))
+                            }
+                            options={{ dateFormat: "d/m/Y" }}
+                            className="w-full rounded-xl border border-slate-200/60 bg-white/50 px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white/80 focus:ring-2 focus:ring-indigo-500/10"
+                            placeholder="Select valid date"
+                        />
+                    </div>
                 </div>
             </section>
 
@@ -303,7 +319,7 @@ export default function QuotationForm({
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[900px]">
+                    <table className="w-full min-w-225">
                         <thead>
                             <tr className="border-y border-white/50 bg-white/30">
                                 <th className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -480,7 +496,7 @@ export default function QuotationForm({
 
                         <div className="my-3 border-t border-slate-200/60" />
 
-                        <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-4 text-white">
+                        <div className="flex items-center justify-between rounded-2xl bg-linear-to-r from-indigo-500 to-violet-500 px-5 py-4 text-white">
                             <span className="text-sm font-medium">
                                 Grand Total
                             </span>
@@ -504,11 +520,11 @@ function SectionTitle({
     icon,
     title,
     description,
-}: {
+}: Readonly<{
     icon: React.ReactNode;
     title: string;
     description: string;
-}) {
+}>) {
     return (
         <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600">
@@ -533,12 +549,12 @@ function Input({
     value,
     placeholder,
     onChange,
-}: {
+}: Readonly<{
     label: string;
     value: string;
     placeholder?: string;
     onChange: (value: string) => void;
-}) {
+}>) {
     return (
         <div>
             <label className="mb-1.5 block text-xs font-medium text-slate-600">
@@ -560,12 +576,12 @@ function Textarea({
     value,
     placeholder,
     onChange,
-}: {
+}: Readonly<{
     label: string;
     value: string;
     placeholder?: string;
     onChange: (value: string) => void;
-}) {
+}>) {
     return (
         <div>
             <label className="mb-1.5 block text-xs font-medium text-slate-600">

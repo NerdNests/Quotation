@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import {
@@ -11,10 +11,8 @@ import {
     MdPerson,
     MdCalendarToday,
     MdCurrencyRupee,
-    MdVisibility,
     MdCheckCircle,
     MdClose,
-    MdMoreVert,
     MdChevronLeft,
     MdChevronRight,
     MdKeyboardArrowDown,
@@ -23,7 +21,6 @@ import {
 
 type ProjectStatus =
     | "Available"
-    | "In Progress"
     | "Quotation Created"
     | "Won"
     | "Dropped";
@@ -39,75 +36,6 @@ type Project = {
     createdDate: string;
 };
 
-const projects: Project[] = [
-    {
-        id: "PRJ-2026-00125",
-        name: "Website Development",
-        customer: "ABC Industries",
-        description:
-            "Corporate website with CMS and admin dashboard",
-        value: 250000,
-        status: "Available",
-        deadline: "30 Sep 2026",
-        createdDate: "16 Sep 2026",
-    },
-    {
-        id: "PRJ-2026-00124",
-        name: "Mobile Application",
-        customer: "XYZ Technologies",
-        description:
-            "React Native application for customer management",
-        value: 420000,
-        status: "Quotation Created",
-        deadline: "05 Oct 2026",
-        createdDate: "15 Sep 2026",
-    },
-    {
-        id: "PRJ-2026-00123",
-        name: "ERP Development",
-        customer: "Demo Corporation",
-        description:
-            "Business ERP with inventory, sales and accounting",
-        value: 680000,
-        status: "In Progress",
-        deadline: "20 Oct 2026",
-        createdDate: "14 Sep 2026",
-    },
-    {
-        id: "PRJ-2026-00122",
-        name: "Cloud Migration",
-        customer: "Global Solutions",
-        description:
-            "Migration of existing infrastructure to cloud",
-        value: 345000,
-        status: "Won",
-        deadline: "15 Oct 2026",
-        createdDate: "13 Sep 2026",
-    },
-    {
-        id: "PRJ-2026-00121",
-        name: "DevOps Setup",
-        customer: "Tech Systems",
-        description:
-            "CI/CD, Docker and Kubernetes infrastructure setup",
-        value: 195000,
-        status: "Dropped",
-        deadline: "25 Sep 2026",
-        createdDate: "12 Sep 2026",
-    },
-    {
-        id: "PRJ-2026-00120",
-        name: "E-Commerce Platform",
-        customer: "Smart Retail",
-        description:
-            "Online shopping platform with payment integration",
-        value: 525000,
-        status: "Available",
-        deadline: "30 Oct 2026",
-        createdDate: "11 Sep 2026",
-    },
-];
-
 const statusConfig: Record<
     ProjectStatus,
     {
@@ -117,11 +45,6 @@ const statusConfig: Record<
     Available: {
         className:
             "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-    },
-
-    "In Progress": {
-        className:
-            "bg-blue-500/10 text-blue-600 border-blue-500/20",
     },
 
     "Quotation Created": {
@@ -141,6 +64,9 @@ const statusConfig: Record<
 };
 
 export default function ProjectsPage() {
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [loadError, setLoadError] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
 
     const [status, setStatus] = useState<
@@ -148,6 +74,7 @@ export default function ProjectsPage() {
     >("All");
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     const [selectedProject, setSelectedProject] =
         useState<Project | null>(null);
@@ -159,6 +86,26 @@ export default function ProjectsPage() {
         useState("");
 
     const itemsPerPage = 6;
+
+    useEffect(() => {
+        const loadProjects = async () => {
+            try {
+                const response = await fetch("/api/projects");
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || "Failed to load projects");
+                setProjects(result.projects.map((project: Omit<Project, "deadline" | "createdDate"> & { deadline: string; createdDate: string }) => ({
+                    ...project,
+                    deadline: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(project.deadline)),
+                    createdDate: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(project.createdDate)),
+                })));
+            } catch (error) {
+                setLoadError(error instanceof Error ? error.message : "Failed to load projects");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        void loadProjects();
+    }, []);
 
     const formatCurrency = (value: number) =>
         new Intl.NumberFormat("en-IN", {
@@ -192,7 +139,7 @@ export default function ProjectsPage() {
                 matchesStatus
             );
         });
-    }, [search, status]);
+    }, [projects, search, status]);
 
     const totalPages = Math.max(
         1,
@@ -228,13 +175,6 @@ export default function ProjectsPage() {
                 "Quotation Created"
         ).length;
 
-    const inProgressCount =
-        projects.filter(
-            (project) =>
-                project.status ===
-                "In Progress"
-        ).length;
-
     const openDropModal = (
         project: Project
     ) => {
@@ -249,15 +189,20 @@ export default function ProjectsPage() {
         setDropReason("");
     };
 
-    const handleDropProject = () => {
+    const handleDropProject = async () => {
         if (!selectedProject) return;
-
-        console.log({
-            projectId: selectedProject.id,
-            reason: dropReason,
-        });
-
-        closeDropModal();
+        try {
+            const response = await fetch("/api/projects", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: selectedProject.id, status: "DROPPED", reason: dropReason }),
+            });
+            if (!response.ok) throw new Error("Failed to drop project");
+            setProjects((currentProjects) => currentProjects.map((project) => project.id === selectedProject.id ? { ...project, status: "Dropped" } : project));
+            closeDropModal();
+        } catch (error) {
+            setLoadError(error instanceof Error ? error.message : "Failed to drop project");
+        }
     };
 
     return (
@@ -281,12 +226,13 @@ export default function ProjectsPage() {
                     </p>
                 </div>
 
-                <button
+                <Link
+                    href="/quotation/create"
                     className="
             flex w-fit
             items-center gap-2
             rounded-2xl
-            bg-gradient-to-r
+            bg-linear-to-r
             from-indigo-500
             to-violet-500
             px-5 py-3
@@ -301,7 +247,7 @@ export default function ProjectsPage() {
                     <MdAdd size={20} />
 
                     Add Project
-                </button>
+                </Link>
 
             </div>
 
@@ -339,6 +285,7 @@ export default function ProjectsPage() {
 
             <div
                 className="
+          relative z-50
           rounded-3xl
           border border-white/50
           bg-white/55
@@ -406,70 +353,42 @@ export default function ProjectsPage() {
               "
                         />
 
-                        <select
-                            value={status}
-                            onChange={(event) => {
-                                setStatus(
-                                    event.target.value as
-                                    | ProjectStatus
-                                    | "All"
-                                );
-
-                                setCurrentPage(1);
-                            }}
+                        <button
+                            type="button"
+                            onClick={() => setIsFilterOpen((open) => !open)}
+                            aria-haspopup="listbox"
+                            aria-expanded={isFilterOpen}
                             className="
-                w-full
-                appearance-none
-                rounded-2xl
-                border border-white/60
-                bg-white/50
-                py-3
-                pl-10 pr-10
-                text-sm
-                text-slate-700
-                outline-none
-                backdrop-blur-xl
-                focus:bg-white/80
-                lg:w-52
-              "
+                                flex min-w-52 items-center justify-between
+                                rounded-2xl border border-white/60 bg-white/50
+                                py-3 pl-10 pr-4 text-sm text-slate-700 outline-none
+                                backdrop-blur-xl hover:bg-white/80
+                            "
                         >
+                            {status === "All" ? "All Status" : status}
+                            <MdKeyboardArrowDown size={18} />
+                        </button>
 
-                            <option value="All">
-                                All Status
-                            </option>
-
-                            <option value="Available">
-                                Available
-                            </option>
-
-                            <option value="Quotation Created">
-                                Quotation Created
-                            </option>
-
-                            <option value="In Progress">
-                                In Progress
-                            </option>
-
-                            <option value="Won">
-                                Won
-                            </option>
-
-                            <option value="Dropped">
-                                Dropped
-                            </option>
-
-                        </select>
-
-                        <MdKeyboardArrowDown
-                            size={18}
-                            className="
-                pointer-events-none
-                absolute right-3
-                top-1/2
-                -translate-y-1/2
-                text-slate-400
-              "
-                        />
+                        {isFilterOpen && (
+                            <div role="listbox" className="absolute right-0 z-[100] mt-2 w-full min-w-52 overflow-hidden rounded-2xl border border-white/70 bg-white p-1 shadow-xl">
+                                {(["All", "Available", "Quotation Created", "Won", "Dropped"] as const).map((option) => (
+                                    <button
+                                        key={option}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={status === option}
+                                        onClick={() => {
+                                            setStatus(option as ProjectStatus | "All");
+                                            setCurrentPage(1);
+                                            setIsFilterOpen(false);
+                                        }}
+                                        className={`block w-full rounded-xl px-3 py-2 text-left text-sm ${status === option ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"}`}
+                                    >
+                                        {option === "All" ? "All Status" : option}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
                     </div>
 
@@ -500,11 +419,17 @@ export default function ProjectsPage() {
                         {filteredProjects.length} projects found
                     </p>
 
+                    {loadError && (
+                        <p className="mt-2 text-xs text-red-500">
+                            {loadError}
+                        </p>
+                    )}
+
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
 
-                    <table className="w-full min-w-[1100px]">
+                    <table className="w-full min-w-[900px]">
 
                         <thead>
 
@@ -528,10 +453,6 @@ export default function ProjectsPage() {
 
                                 <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                                     Status
-                                </th>
-
-                                <th className="px-6 py-4 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                                    Actions
                                 </th>
 
                             </tr>
@@ -581,11 +502,11 @@ export default function ProjectsPage() {
                                                 </div>
 
                                                 <h3 className="mt-4 text-sm font-semibold text-slate-800">
-                                                    No projects found
+                                                    {isLoading ? "Loading projects..." : "No projects found"}
                                                 </h3>
 
                                                 <p className="mt-1 text-xs text-slate-400">
-                                                    Try changing your search or filter.
+                                                    {isLoading ? "Fetching your saved quotation projects." : "Try changing your search or filter."}
                                                 </p>
 
                                             </div>
@@ -715,7 +636,7 @@ export default function ProjectsPage() {
             {showDropModal && selectedProject && (
                 <div
                     className="
-            fixed inset-0 z-[100]
+            fixed inset-0 z-100
             flex items-center justify-center
             bg-slate-900/30
             p-4
@@ -811,11 +732,12 @@ export default function ProjectsPage() {
 
                         <div className="mt-5">
 
-                            <label className="mb-2 block text-xs font-medium text-slate-600">
+                            <label htmlFor="dropReason" className="mb-2 block text-xs font-medium text-slate-600">
                                 Reason for dropping
                             </label>
 
                             <textarea
+                                id="dropReason"
                                 value={dropReason}
                                 onChange={(event) =>
                                     setDropReason(
@@ -904,11 +826,11 @@ function SummaryCard({
     title,
     value,
     icon,
-}: {
+}: Readonly<{
     title: string;
     value: string;
     icon: React.ReactNode;
-}) {
+}>) {
     return (
         <div
             className="
@@ -965,14 +887,13 @@ function SummaryCard({
 function ProjectRow({
     project,
     formatCurrency,
-    onDrop,
-}: {
+}: Readonly<{
     project: Project;
     formatCurrency: (
         value: number
     ) => string;
     onDrop: () => void;
-}) {
+}>) {
     const status =
         statusConfig[project.status];
 
@@ -1110,93 +1031,6 @@ function ProjectRow({
                 </span>
 
             </td>
-
-            {/* ACTIONS */}
-
-            <td className="px-6 py-4">
-
-                <div className="flex justify-end gap-1">
-
-                    {/* View */}
-
-                    <Link
-                        href={`/quotation/projects/${project.id}`}
-                        title="View Project"
-                        className="
-              flex h-9 w-9
-              items-center justify-center
-              rounded-xl
-              text-slate-400
-              transition
-              hover:bg-indigo-500/10
-              hover:text-indigo-600
-            "
-                    >
-                        <MdVisibility size={19} />
-                    </Link>
-
-                    {/* Get Project */}
-
-                    {project.status ===
-                        "Available" && (
-                            <Link
-                                href={`/quotation/create?project=${project.id}`}
-                                title="Create Quotation"
-                                className="
-                flex h-9 w-9
-                items-center justify-center
-                rounded-xl
-                text-emerald-500
-                transition
-                hover:bg-emerald-500/10
-              "
-                            >
-                                <MdCheckCircle size={19} />
-                            </Link>
-                        )}
-
-                    {/* Drop */}
-
-                    {project.status ===
-                        "Available" && (
-                            <button
-                                onClick={onDrop}
-                                title="Drop Project"
-                                className="
-                flex h-9 w-9
-                items-center justify-center
-                rounded-xl
-                text-red-400
-                transition
-                hover:bg-red-500/10
-                hover:text-red-500
-              "
-                            >
-                                <MdClose size={19} />
-                            </button>
-                        )}
-
-                    {/* More */}
-
-                    <button
-                        title="More"
-                        className="
-              flex h-9 w-9
-              items-center justify-center
-              rounded-xl
-              text-slate-400
-              transition
-              hover:bg-white/80
-              hover:text-slate-700
-            "
-                    >
-                        <MdMoreVert size={19} />
-                    </button>
-
-                </div>
-
-            </td>
-
         </tr>
     );
 }

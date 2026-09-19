@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   MdAdd,
   MdSearch,
   MdFilterList,
-  MdDownload,
-  MdVisibility,
-  MdEdit,
-  MdMoreVert,
   MdDescription,
   MdCheckCircle,
   MdPending,
@@ -76,6 +73,9 @@ export default function QuotationListPage() {
   >("All");
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [openStatusId, setOpenStatusId] = useState<string | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const itemsPerPage = 6;
 
@@ -123,7 +123,28 @@ export default function QuotationListPage() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, status]);
+  }, [quotations, search, status]);
+
+  const updateQuotationStatus = async (id: string, nextStatus: QuotationStatus) => {
+    const databaseStatus = { Draft: "DRAFT", Submitted: "SENT", Won: "WON", Dropped: "DROPPED" }[nextStatus];
+    setUpdatingStatusId(id);
+    setLoadError("");
+    try {
+      const response = await fetch("/api/quotations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: databaseStatus }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to update quotation status");
+      setQuotations((current) => current.map((quotation) => quotation.id === id ? { ...quotation, status: nextStatus } : quotation));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to update quotation status");
+    } finally {
+      setUpdatingStatusId(null);
+      setOpenStatusId(null);
+    }
+  };
 
   const totalPages = Math.max(
     1,
@@ -178,7 +199,7 @@ export default function QuotationListPage() {
             flex w-fit
             items-center gap-2
             rounded-2xl
-            bg-gradient-to-r
+            bg-linear-to-r
             from-indigo-500
             to-violet-500
             px-5 py-3
@@ -230,6 +251,7 @@ export default function QuotationListPage() {
 
       <div
         className="
+          relative z-50
           rounded-3xl
           border border-white/50
           bg-white/55
@@ -294,62 +316,42 @@ export default function QuotationListPage() {
               "
             />
 
-            <select
-              value={status}
-              onChange={(event) => {
-                setStatus(
-                  event.target.value as
-                    | QuotationStatus
-                    | "All"
-                );
-
-                setCurrentPage(1);
-              }}
+            <button
+              type="button"
+              onClick={() => setIsFilterOpen((open) => !open)}
+              aria-haspopup="listbox"
+              aria-expanded={isFilterOpen}
               className="
-                appearance-none
-                rounded-2xl
-                border border-white/60
-                bg-white/50
-                py-3
-                pl-10 pr-10
-                text-sm
-                text-slate-700
-                outline-none
-                backdrop-blur-xl
-                focus:bg-white/80
+                flex min-w-44 items-center justify-between
+                rounded-2xl border border-white/60 bg-white/50
+                py-3 pl-10 pr-4 text-sm text-slate-700 outline-none
+                backdrop-blur-xl hover:bg-white/80
               "
             >
-              <option value="All">
-                All Status
-              </option>
+              {status === "All" ? "All Status" : status}
+              <MdKeyboardArrowDown size={18} />
+            </button>
 
-              <option value="Draft">
-                Draft
-              </option>
-
-              <option value="Submitted">
-                Submitted
-              </option>
-
-              <option value="Won">
-                Won
-              </option>
-
-              <option value="Dropped">
-                Dropped
-              </option>
-            </select>
-
-            <MdKeyboardArrowDown
-              size={18}
-              className="
-                pointer-events-none
-                absolute right-3
-                top-1/2
-                -translate-y-1/2
-                text-slate-400
-              "
-            />
+            {isFilterOpen && (
+              <div role="listbox" className="absolute right-0 z-[100] mt-2 w-full min-w-44 overflow-hidden rounded-2xl border border-white/70 bg-white p-1 shadow-xl">
+                {(["All", "Draft", "Submitted", "Won", "Dropped"] as const).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    role="option"
+                    aria-selected={status === option}
+                    onClick={() => {
+                      setStatus(option);
+                      setCurrentPage(1);
+                      setIsFilterOpen(false);
+                    }}
+                    className={`block w-full rounded-xl px-3 py-2 text-left text-sm ${status === option ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"}`}
+                  >
+                    {option === "All" ? "All Status" : option}
+                  </button>
+                ))}
+              </div>
+            )}
 
           </div>
 
@@ -384,32 +386,13 @@ export default function QuotationListPage() {
             </p>
           </div>
 
-          <button
-            className="
-              flex w-fit
-              items-center gap-2
-              rounded-xl
-              border border-white/60
-              bg-white/40
-              px-3 py-2
-              text-xs
-              font-medium
-              text-slate-600
-              transition
-              hover:bg-white/70
-            "
-          >
-            <MdDownload size={17} />
-            Export
-          </button>
-
         </div>
 
         {/* RESPONSIVE TABLE */}
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
 
-          <table className="w-full min-w-[950px]">
+          <table className="w-full min-w-[900px]">
 
             <thead>
 
@@ -439,10 +422,6 @@ export default function QuotationListPage() {
                   Date
                 </th>
 
-                <th className="px-6 py-4 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                  Action
-                </th>
-
               </tr>
 
             </thead>
@@ -457,6 +436,10 @@ export default function QuotationListPage() {
                     formatCurrency={
                       formatCurrency
                     }
+                    isStatusOpen={openStatusId === quotation.id}
+                    isUpdatingStatus={updatingStatusId === quotation.id}
+                    onToggleStatus={() => setOpenStatusId((openId) => openId === quotation.id ? null : quotation.id)}
+                    onStatusChange={(nextStatus) => void updateQuotationStatus(quotation.id, nextStatus)}
                   />
                 )
               )}
@@ -465,7 +448,7 @@ export default function QuotationListPage() {
                 0 && (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={6}
                     className="px-6 py-16 text-center"
                   >
                     <div className="flex flex-col items-center">
@@ -622,11 +605,11 @@ function SummaryCard({
   title,
   value,
   icon,
-}: {
+}: Readonly<{
   title: string;
   value: string;
   icon: React.ReactNode;
-}) {
+}>) {
   return (
     <div
       className="
@@ -683,14 +666,44 @@ function SummaryCard({
 function QuotationRow({
   quotation,
   formatCurrency,
-}: {
+  isStatusOpen,
+  isUpdatingStatus,
+  onToggleStatus,
+  onStatusChange,
+}: Readonly<{
   quotation: Quotation;
   formatCurrency: (value: number) => string;
-}) {
+  isStatusOpen: boolean;
+  isUpdatingStatus: boolean;
+  onToggleStatus: () => void;
+  onStatusChange: (status: QuotationStatus) => void;
+}>) {
   const config =
     statusConfig[quotation.status];
+  const statusButtonRef = useRef<HTMLButtonElement>(null);
+  const statusMenuRef = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
 
   const StatusIcon = config.icon;
+
+  useEffect(() => {
+    if (!isStatusOpen) return;
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (!statusButtonRef.current?.contains(target) && !statusMenuRef.current?.contains(target)) {
+        onToggleStatus();
+      }
+    };
+    const closeOnScroll = () => onToggleStatus();
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    window.addEventListener("scroll", closeOnScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      window.removeEventListener("scroll", closeOnScroll, true);
+    };
+  }, [isStatusOpen, onToggleStatus]);
 
   return (
     <tr
@@ -761,7 +774,23 @@ function QuotationRow({
 
       <td className="px-4 py-4">
 
-        <span
+        <button
+          ref={statusButtonRef}
+          type="button"
+          onClick={() => {
+            const rect = statusButtonRef.current?.getBoundingClientRect();
+            if (rect && !isStatusOpen) {
+              const menuHeight = 144;
+              const top = rect.bottom + 8 + menuHeight > window.innerHeight
+                ? rect.top - menuHeight - 8
+                : rect.bottom + 8;
+              setMenuPosition({ top, left: rect.left });
+            }
+            onToggleStatus();
+          }}
+          disabled={isUpdatingStatus}
+          aria-haspopup="listbox"
+          aria-expanded={isStatusOpen}
           className={`
             inline-flex
             items-center
@@ -772,11 +801,36 @@ function QuotationRow({
             text-[11px]
             font-medium
             ${config.className}
+            disabled:cursor-wait
           `}
         >
           <StatusIcon size={13} />
-          {quotation.status}
-        </span>
+          {isUpdatingStatus ? "Updating..." : quotation.status}
+          <MdKeyboardArrowDown size={14} />
+        </button>
+
+        {isStatusOpen && menuPosition && createPortal(
+          <div
+            role="listbox"
+            ref={statusMenuRef}
+            className="fixed z-50 w-36 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl"
+            style={{ top: menuPosition.top, left: menuPosition.left }}
+          >
+            {(["Draft", "Submitted", "Won", "Dropped"] as QuotationStatus[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="option"
+                aria-selected={quotation.status === option}
+                onClick={() => onStatusChange(option)}
+                className={`block w-full rounded-lg px-3 py-1.5 text-left text-xs ${quotation.status === option ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"}`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
 
       </td>
 
@@ -787,69 +841,6 @@ function QuotationRow({
         <p className="text-xs text-slate-500">
           {quotation.date}
         </p>
-
-      </td>
-
-      {/* ACTIONS */}
-
-      <td className="px-6 py-4">
-
-        <div className="flex justify-end gap-1">
-
-          {/* View */}
-
-          <Link
-            href={`/quotation/${quotation.id}`}
-            title="View"
-            className="
-              flex h-9 w-9
-              items-center justify-center
-              rounded-xl
-              text-slate-400
-              transition
-              hover:bg-indigo-500/10
-              hover:text-indigo-600
-            "
-          >
-            <MdVisibility size={19} />
-          </Link>
-
-          {/* Edit */}
-
-          <Link
-            href={`/quotation/${quotation.id}/edit`}
-            title="Edit"
-            className="
-              flex h-9 w-9
-              items-center justify-center
-              rounded-xl
-              text-slate-400
-              transition
-              hover:bg-amber-500/10
-              hover:text-amber-600
-            "
-          >
-            <MdEdit size={18} />
-          </Link>
-
-          {/* More */}
-
-          <button
-            title="More"
-            className="
-              flex h-9 w-9
-              items-center justify-center
-              rounded-xl
-              text-slate-400
-              transition
-              hover:bg-white/80
-              hover:text-slate-700
-            "
-          >
-            <MdMoreVert size={19} />
-          </button>
-
-        </div>
 
       </td>
 

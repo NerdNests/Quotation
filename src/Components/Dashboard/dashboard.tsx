@@ -11,105 +11,8 @@ import {
     MdTrendingUp,
     MdCheckCircle,
     MdPending,
-    MdCancel,
     MdFolderOpen,
-    MdKeyboardArrowUp,
 } from "react-icons/md";
-
-const stats = [
-    {
-        title: "Total Quotations",
-        value: "245",
-        change: "+12.5%",
-        description: "vs last month",
-        icon: MdDescription,
-    },
-    {
-        title: "Submitted",
-        value: "84",
-        change: "+8.2%",
-        description: "vs last month",
-        icon: MdPending,
-    },
-    {
-        title: "Won",
-        value: "96",
-        change: "+15.4%",
-        description: "vs last month",
-        icon: MdCheckCircle,
-    },
-    {
-        title: "Dropped",
-        value: "33",
-        change: "-4.8%",
-        description: "vs last month",
-        icon: MdCancel,
-    },
-];
-
-const quotations = [
-    {
-        id: "QT-2026-00125",
-        customer: "ABC Industries",
-        project: "Website Development",
-        amount: "₹1,12,100",
-        status: "Won",
-        date: "16 Sep 2026",
-    },
-    {
-        id: "QT-2026-00124",
-        customer: "XYZ Technologies",
-        project: "Mobile Application",
-        amount: "₹85,000",
-        status: "Draft",
-        date: "15 Sep 2026",
-    },
-    {
-        id: "QT-2026-00123",
-        customer: "Demo Corporation",
-        project: "ERP Development",
-        amount: "₹2,10,500",
-        status: "Submitted",
-        date: "14 Sep 2026",
-    },
-    {
-        id: "QT-2026-00122",
-        customer: "Global Solutions",
-        project: "Cloud Migration",
-        amount: "₹3,45,000",
-        status: "Won",
-        date: "13 Sep 2026",
-    },
-    {
-        id: "QT-2026-00121",
-        customer: "Tech Systems",
-        project: "DevOps Setup",
-        amount: "₹95,000",
-        status: "Dropped",
-        date: "12 Sep 2026",
-    },
-];
-
-const projects = [
-    {
-        name: "Website Development",
-        customer: "ABC Industries",
-        status: "Available",
-        value: "₹2,50,000",
-    },
-    {
-        name: "Mobile Application",
-        customer: "XYZ Technologies",
-        status: "In Progress",
-        value: "₹4,20,000",
-    },
-    {
-        name: "ERP Development",
-        customer: "Demo Corporation",
-        status: "Available",
-        value: "₹6,80,000",
-    },
-];
 
 function StatusBadge({ status }: Readonly<{ status: string }>) {
     const styles: Record<string, string> = {
@@ -146,6 +49,8 @@ export default function DashboardPage() {
         totalValue: 0,
         statusCounts: { draft: 0, submitted: 0, won: 0, dropped: 0 },
         recentQuotations: [] as { quotationNumber: string; customerName: string; customerCompany: string | null; grandTotal: number; status: string; quotationDate: string }[],
+        monthlyTotals: [] as { month: string; value: number }[],
+        recentProjects: [] as { quotationNumber: string; customerName: string; customerCompany: string | null; grandTotal: number; status: string }[],
     });
 
     useEffect(() => {
@@ -164,10 +69,10 @@ export default function DashboardPage() {
     const formatDate = (value: string) => new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
     const displayStatus = (status: string) => ({ DRAFT: "Draft", SENT: "Submitted", WON: "Won", DROPPED: "Dropped" }[status] ?? "Draft");
     const stats = [
-        { title: "Total Quotations", value: dashboard.total.toString(), change: "", description: "All saved quotations", icon: MdDescription },
-        { title: "Submitted", value: dashboard.statusCounts.submitted.toString(), change: "", description: "Sent to customers", icon: MdPending },
-        { title: "Won", value: dashboard.statusCounts.won.toString(), change: "", description: "Accepted quotations", icon: MdCheckCircle },
-        { title: "Total Value", value: formatCurrency(dashboard.totalValue), change: "", description: "Combined quotation value", icon: MdTrendingUp },
+        { title: "Total Quotations", value: dashboard.total.toString(), description: "All saved quotations", icon: MdDescription },
+        { title: "Submitted", value: dashboard.statusCounts.submitted.toString(), description: "Sent to customers", icon: MdPending },
+        { title: "Won", value: dashboard.statusCounts.won.toString(), description: "Accepted quotations", icon: MdCheckCircle },
+        { title: "Total Value", value: formatCurrency(dashboard.totalValue), description: "Combined quotation value", icon: MdTrendingUp },
     ];
     const quotations = dashboard.recentQuotations.map((quotation) => ({
         id: quotation.quotationNumber,
@@ -177,6 +82,32 @@ export default function DashboardPage() {
         status: displayStatus(quotation.status),
         date: formatDate(quotation.quotationDate),
     }));
+    const projects = dashboard.recentProjects.map((project) => ({
+        name: project.customerCompany ?? project.quotationNumber,
+        customer: project.customerName,
+        status: displayStatus(project.status),
+        value: formatCurrency(project.grandTotal),
+    }));
+    const maxMonthlyValue = Math.max(...dashboard.monthlyTotals.map((item) => item.value), 1);
+    const statusItems = [
+        ["Won", dashboard.statusCounts.won, "bg-emerald-500"],
+        ["Submitted", dashboard.statusCounts.submitted, "bg-indigo-500"],
+        ["Draft", dashboard.statusCounts.draft, "bg-amber-500"],
+        ["Dropped", dashboard.statusCounts.dropped, "bg-red-500"],
+    ] as const;
+    const statusSegments = [
+        ["#22c55e", dashboard.statusCounts.won],
+        ["#6366f1", dashboard.statusCounts.submitted],
+        ["#f59e0b", dashboard.statusCounts.draft],
+        ["#ef4444", dashboard.statusCounts.dropped],
+    ] as const;
+    let accumulated = 0;
+    const statusGradient = statusSegments.map(([color, count]) => {
+        const start = (accumulated / Math.max(dashboard.total, 1)) * 100;
+        accumulated += count;
+        const end = (accumulated / Math.max(dashboard.total, 1)) * 100;
+        return `${color} ${start}% ${end}%`;
+    }).join(", ");
 
     return (
         <div className="space-y-6">
@@ -296,15 +227,11 @@ export default function DashboardPage() {
                                 {stat.title}
                             </p>
 
-                            <div className="mt-1 flex items-end justify-between">
+                            <div className="mt-1 flex items-end">
                                 <h3 className="text-2xl font-bold text-slate-900">
                                     {stat.value}
                                 </h3>
 
-                                <span className="flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
-                                    <MdKeyboardArrowUp size={16} />
-                                    {stat.change}
-                                </span>
                             </div>
 
                             <p className="mt-1 text-[11px] text-slate-400">
@@ -363,20 +290,13 @@ export default function DashboardPage() {
 
                         <div className="flex h-62.5 items-end gap-3 sm:gap-6">
 
-                            {[
-                                { month: "Apr", value: 45 },
-                                { month: "May", value: 65 },
-                                { month: "Jun", value: 52 },
-                                { month: "Jul", value: 78 },
-                                { month: "Aug", value: 62 },
-                                { month: "Sep", value: 88 },
-                            ].map((item) => (
+                            {dashboard.monthlyTotals.map((item) => (
                                 <div
                                     key={item.month}
                                     className="flex h-full flex-1 flex-col justify-end"
                                 >
                                     <div className="mb-2 text-center text-[10px] text-slate-400">
-                                        ₹{item.value}L
+                                        {formatCurrency(item.value)}
                                     </div>
 
                                     <div
@@ -391,12 +311,12 @@ export default function DashboardPage() {
                       hover:opacity-100
                     "
                                         style={{
-                                            height: `${item.value * 2}px`,
+                                            height: `${Math.max((item.value / maxMonthlyValue) * 200, 2)}px`,
                                         }}
                                     />
 
                                     <div className="mt-3 text-center text-[11px] text-slate-400">
-                                        {item.month}
+                                        {new Intl.DateTimeFormat("en-GB", { month: "short" }).format(new Date(`${item.month}-01T00:00:00`))}
                                     </div>
                                 </div>
                             ))}
@@ -444,7 +364,7 @@ export default function DashboardPage() {
               "
                             style={{
                                 background:
-                                    "conic-gradient(#6366f1 0% 39%, #22c55e 39% 70%, #f59e0b 70% 83%, #ef4444 83% 100%)",
+                                    `conic-gradient(${statusGradient})`,
                             }}
                         >
                             <div
@@ -457,7 +377,7 @@ export default function DashboardPage() {
                 "
                             >
                                 <span className="text-3xl font-bold text-slate-900">
-                                    245
+                                    {dashboard.total}
                                 </span>
 
                                 <span className="text-[11px] text-slate-400">
@@ -468,12 +388,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="mt-7 space-y-3">
-                        {[
-                            ["Won", "96", "bg-emerald-500"],
-                            ["Submitted", "84", "bg-indigo-500"],
-                            ["Draft", "32", "bg-amber-500"],
-                            ["Dropped", "33", "bg-red-500"],
-                        ].map(([label, value, color]) => (
+                        {statusItems.map(([label, value, color]) => (
                             <div
                                 key={label}
                                 className="flex items-center justify-between"
