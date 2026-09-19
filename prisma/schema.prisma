@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  WON
+  DROPPED
+}
+
+model Quotation {
+  id               String          @id @default(cuid())
+  quotationNumber  String          @unique
+  quotationDate    DateTime
+  validUntil       DateTime
+  companyName      String
+  companyAddress   String?
+  companyPhone     String?
+  companyEmail     String?
+  customerName     String
+  customerCompany  String?
+  customerAddress  String?
+  customerPhone    String?
+  customerEmail    String?
+  subtotal         Float
+  discountPercent  Float           @default(0)
+  discountAmount   Float           @default(0)
+  taxPercent       Float           @default(0)
+  taxAmount        Float           @default(0)
+  grandTotal       Float
+  status           QuotationStatus @default(SENT)
+  items            QuotationItem[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+model QuotationItem {
+  id          String    @id @default(cuid())
+  quotationId String
+  serviceName String
+  description String?
+  quantity    Float
+  price       Float
+  total       Float
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+}

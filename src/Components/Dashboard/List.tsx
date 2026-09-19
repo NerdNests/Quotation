@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   MdAdd,
   MdSearch,
@@ -35,80 +35,8 @@ type Quotation = {
   validUntil: string;
 };
 
-const quotations: Quotation[] = [
-  {
-    id: "QT-2026-00125",
-    customer: "ABC Industries",
-    project: "Website Development",
-    amount: 112100,
-    status: "Won",
-    date: "16 Sep 2026",
-    validUntil: "30 Sep 2026",
-  },
-  {
-    id: "QT-2026-00124",
-    customer: "XYZ Technologies",
-    project: "Mobile Application",
-    amount: 85000,
-    status: "Draft",
-    date: "15 Sep 2026",
-    validUntil: "29 Sep 2026",
-  },
-  {
-    id: "QT-2026-00123",
-    customer: "Demo Corporation",
-    project: "ERP Development",
-    amount: 210500,
-    status: "Submitted",
-    date: "14 Sep 2026",
-    validUntil: "28 Sep 2026",
-  },
-  {
-    id: "QT-2026-00122",
-    customer: "Global Solutions",
-    project: "Cloud Migration",
-    amount: 345000,
-    status: "Won",
-    date: "13 Sep 2026",
-    validUntil: "27 Sep 2026",
-  },
-  {
-    id: "QT-2026-00121",
-    customer: "Tech Systems",
-    project: "DevOps Setup",
-    amount: 95000,
-    status: "Dropped",
-    date: "12 Sep 2026",
-    validUntil: "26 Sep 2026",
-  },
-  {
-    id: "QT-2026-00120",
-    customer: "Smart Retail",
-    project: "E-Commerce Platform",
-    amount: 425000,
-    status: "Submitted",
-    date: "11 Sep 2026",
-    validUntil: "25 Sep 2026",
-  },
-  {
-    id: "QT-2026-00119",
-    customer: "Prime Logistics",
-    project: "Logistics Dashboard",
-    amount: 175000,
-    status: "Won",
-    date: "10 Sep 2026",
-    validUntil: "24 Sep 2026",
-  },
-  {
-    id: "QT-2026-00118",
-    customer: "Blue Ocean Ltd",
-    project: "CRM Application",
-    amount: 280000,
-    status: "Draft",
-    date: "09 Sep 2026",
-    validUntil: "23 Sep 2026",
-  },
-];
+const formatDate = (value: string) => new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
+const displayStatus = (status: string): QuotationStatus => ({ DRAFT: "Draft", SENT: "Submitted", WON: "Won", DROPPED: "Dropped" }[status] as QuotationStatus ?? "Draft");
 
 const statusConfig: Record<
   QuotationStatus,
@@ -140,6 +68,8 @@ const statusConfig: Record<
 };
 
 export default function QuotationListPage() {
+  const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<
     QuotationStatus | "All"
@@ -148,6 +78,22 @@ export default function QuotationListPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 6;
+
+  useEffect(() => {
+    const loadQuotations = async () => {
+      try {
+        const response = await fetch("/api/quotations");
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "Failed to load quotations");
+        setQuotations(result.quotations.map((item: { quotationNumber: string; customerName: string; customerCompany: string | null; grandTotal: number; status: string; quotationDate: string; validUntil: string }) => ({
+          id: item.quotationNumber, customer: item.customerName, project: item.customerCompany || "—", amount: item.grandTotal, status: displayStatus(item.status), date: formatDate(item.quotationDate), validUntil: formatDate(item.validUntil),
+        })));
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : "Failed to load quotations");
+      }
+    };
+    void loadQuotations();
+  }, []);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("en-IN", {
@@ -204,7 +150,9 @@ export default function QuotationListPage() {
     ).length;
 
   return (
-    <div className="space-y-6">
+      <div className="space-y-6">
+
+      {loadError && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{loadError}</p>}
 
       {/* PAGE HEADER */}
 

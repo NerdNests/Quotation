@@ -13,7 +13,7 @@ const initialCustomer: Customer = { name: "", company: "", address: "", phone: "
 const initialQuotation: Quotation = {
     number: "QT-2026-0001",
     date: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date()),
-    validUntil: "",
+    validUntil: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)),
 };
 const initialService: Service = { id: 1, name: "", description: "", quantity: 1, price: 0 };
 
@@ -47,6 +47,16 @@ export default function CreateQuotationPage() {
         setIsDownloading(true);
 
         try {
+            const saveResponse = await fetch("/api/quotations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ quotation, company, customer, services, subtotal, discount, discountAmount, tax, taxAmount, grandTotal }),
+            });
+            const saveResult = await saveResponse.json();
+            if (!saveResponse.ok) {
+                throw new Error(saveResult.message || "Unable to save quotation");
+            }
+
             const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
             const canvas = await html2canvas(pdfRef.current, { backgroundColor: "#ffffff", scale: 2, useCORS: true, logging: false });
             const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
@@ -64,7 +74,7 @@ export default function CreateQuotationPage() {
             pdf.save(`${filename}.pdf`);
         } catch (error) {
             console.error("Unable to download quotation PDF", error);
-            window.alert("The PDF could not be generated. Please try again.");
+            window.alert(error instanceof Error ? error.message : "The PDF could not be generated. Please try again.");
         } finally {
             setIsDownloading(false);
         }

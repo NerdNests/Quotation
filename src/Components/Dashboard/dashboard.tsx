@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
     MdAdd,
     MdArrowForward,
@@ -140,6 +141,43 @@ function StatusBadge({ status }: Readonly<{ status: string }>) {
 }
 
 export default function DashboardPage() {
+    const [dashboard, setDashboard] = useState({
+        total: 0,
+        totalValue: 0,
+        statusCounts: { draft: 0, submitted: 0, won: 0, dropped: 0 },
+        recentQuotations: [] as { quotationNumber: string; customerName: string; customerCompany: string | null; grandTotal: number; status: string; quotationDate: string }[],
+    });
+
+    useEffect(() => {
+        const loadDashboard = async () => {
+            try {
+                const response = await fetch("/api/dashboard");
+                if (response.ok) setDashboard(await response.json());
+            } catch (error) {
+                console.error("Unable to load dashboard", error);
+            }
+        };
+        void loadDashboard();
+    }, []);
+
+    const formatCurrency = (value: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
+    const formatDate = (value: string) => new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
+    const displayStatus = (status: string) => ({ DRAFT: "Draft", SENT: "Submitted", WON: "Won", DROPPED: "Dropped" }[status] ?? "Draft");
+    const stats = [
+        { title: "Total Quotations", value: dashboard.total.toString(), change: "", description: "All saved quotations", icon: MdDescription },
+        { title: "Submitted", value: dashboard.statusCounts.submitted.toString(), change: "", description: "Sent to customers", icon: MdPending },
+        { title: "Won", value: dashboard.statusCounts.won.toString(), change: "", description: "Accepted quotations", icon: MdCheckCircle },
+        { title: "Total Value", value: formatCurrency(dashboard.totalValue), change: "", description: "Combined quotation value", icon: MdTrendingUp },
+    ];
+    const quotations = dashboard.recentQuotations.map((quotation) => ({
+        id: quotation.quotationNumber,
+        customer: quotation.customerName,
+        project: quotation.customerCompany || "—",
+        amount: formatCurrency(quotation.grandTotal),
+        status: displayStatus(quotation.status),
+        date: formatDate(quotation.quotationDate),
+    }));
+
     return (
         <div className="space-y-6">
 
