@@ -15,11 +15,8 @@ import {
 } from "react-icons/fi";
 
 export default function LoginPage() {
-  const [isRegister, setIsRegister] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -32,35 +29,21 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
-      const payload = isRegister
-        ? { firstName, lastName, email, password }
-        : { email, password, rememberMe };
+      const payload = { email, password, rememberMe };
 
-      const response = await fetch(endpoint, {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || (isRegister ? "Unable to create account" : "Unable to sign in"));
-
-      if (isRegister) {
-        const loginResponse = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, rememberMe }),
-        });
-        if (!loginResponse.ok) {
-          throw new Error("Account created, but unable to sign in automatically");
-        }
-      }
+      if (!response.ok) throw new Error(result.message || "Unable to sign in");
 
       const nextPath = new URLSearchParams(window.location.search).get("next");
       router.replace(nextPath?.startsWith("/") ? nextPath : "/");
       router.refresh();
     } catch (error) {
-      setError(error instanceof Error ? error.message : (isRegister ? "Unable to create account" : "Unable to sign in"));
+      setError(error instanceof Error ? error.message : "Unable to sign in");
     } finally {
       setIsSubmitting(false);
     }
@@ -173,11 +156,11 @@ export default function LoginPage() {
               {/* Heading */}
               <div className="mb-6">
                 <p className="mb-3 text-sm font-medium text-indigo-600">
-                  {isRegister ? "Create an account" : "Welcome back"}
+                  Welcome back
                 </p>
 
                 <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-                  {isRegister ? "Start your new" : "Sign in to your"}
+                  Sign in to your
                   <br />
                   <span className="text-slate-500">workspace.</span>
                 </h2>
@@ -189,33 +172,6 @@ export default function LoginPage() {
                   <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
                     {error}
                   </p>
-                )}
-
-                {isRegister && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">First Name</label>
-                      <input
-                        type="text"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="John"
-                        required
-                        className="h-12 w-full rounded-2xl border border-white/60 bg-white/70 px-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-indigo-200 hover:bg-white/90 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">Last Name</label>
-                      <input
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Doe"
-                        required
-                        className="h-12 w-full rounded-2xl border border-white/60 bg-white/70 px-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-indigo-200 hover:bg-white/90 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
-                      />
-                    </div>
-                  </div>
                 )}
 
                 {/* Email */}
@@ -254,7 +210,7 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       required
-                      autoComplete={isRegister ? "new-password" : "current-password"}
+                      autoComplete="current-password"
                       className="h-12 w-full rounded-2xl border border-white/60 bg-white/70 pl-12 pr-12 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-indigo-200 hover:bg-white/90 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
                     />
                     <button
@@ -269,22 +225,20 @@ export default function LoginPage() {
                 </div>
 
                 {/* Remember */}
-                {!isRegister && (
-                  <div className="flex items-center justify-between">
-                    <label className="flex cursor-pointer items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="peer sr-only"
-                      />
-                      <span className="flex h-5 w-5 items-center justify-center rounded-md border border-slate-300 bg-white transition peer-checked:border-indigo-500 peer-checked:bg-indigo-500">
-                        <FiCheckCircle className="hidden text-xs text-white peer-checked:block" />
-                      </span>
-                      <span className="text-sm text-slate-600">Remember me</span>
-                    </label>
-                  </div>
-                )}
+                <div className="flex items-center justify-between">
+                  <label className="flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <span className="flex h-5 w-5 items-center justify-center rounded-md border border-slate-300 bg-white transition peer-checked:border-indigo-500 peer-checked:bg-indigo-500">
+                      <FiCheckCircle className="hidden text-xs text-white peer-checked:block" />
+                    </span>
+                    <span className="text-sm text-slate-600">Remember me</span>
+                  </label>
+                </div>
 
                 {/* Submit */}
                 <button
@@ -292,21 +246,10 @@ export default function LoginPage() {
                   disabled={isSubmitting}
                   className="group flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/30 active:translate-y-0"
                 >
-                  {isSubmitting ? (isRegister ? "Creating..." : "Signing in...") : (isRegister ? "Create Account" : "Sign In")}
+                  {isSubmitting ? "Signing in..." : "Sign In"}
                   <FiArrowRight className="text-lg transition-transform duration-300 group-hover:translate-x-1" />
                 </button>
               </form>
-
-              {/* Toggle Register/Login */}
-              <div className="mt-6 text-center text-sm text-slate-500">
-                {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
-                <button
-                  onClick={() => { setIsRegister(!isRegister); setError(""); }}
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                  {isRegister ? "Sign In" : "Create Account"}
-                </button>
-              </div>
 
               {/* Divider */}
               <div className="my-5 flex items-center gap-4">

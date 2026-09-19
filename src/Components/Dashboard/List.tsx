@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   MdAdd,
   MdSearch,
@@ -14,6 +15,7 @@ import {
   MdChevronLeft,
   MdChevronRight,
   MdKeyboardArrowDown,
+  MdPerson,
 } from "react-icons/md";
 
 type QuotationStatus =
@@ -30,6 +32,7 @@ type Quotation = {
   status: QuotationStatus;
   date: string;
   validUntil: string;
+  createdBy: string;
 };
 
 const formatDate = (value: string) => new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
@@ -65,6 +68,7 @@ const statusConfig: Record<
 };
 
 export default function QuotationListPage() {
+  const { user } = useAuth();
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
@@ -85,8 +89,8 @@ export default function QuotationListPage() {
         const response = await fetch("/api/quotations");
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || "Failed to load quotations");
-        setQuotations(result.quotations.map((item: { quotationNumber: string; customerName: string; customerCompany: string | null; grandTotal: number; status: string; quotationDate: string; validUntil: string }) => ({
-          id: item.quotationNumber, customer: item.customerName, project: item.customerCompany || "—", amount: item.grandTotal, status: displayStatus(item.status), date: formatDate(item.quotationDate), validUntil: formatDate(item.validUntil),
+        setQuotations(result.quotations.map((item: any) => ({
+          id: item.quotationNumber, customer: item.customerName, project: item.customerCompany || "—", amount: item.grandTotal, status: displayStatus(item.status), date: formatDate(item.quotationDate), validUntil: formatDate(item.validUntil), createdBy: item.createdBy ? `${item.createdBy.firstName} ${item.createdBy.lastName}` : "Unknown"
         })));
       } catch (error) {
         setLoadError(error instanceof Error ? error.message : "Failed to load quotations");
@@ -410,6 +414,10 @@ export default function QuotationListPage() {
                   Project
                 </th>
 
+                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  Created By
+                </th>
+
                 <th className="px-4 py-4 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                   Amount
                 </th>
@@ -436,6 +444,7 @@ export default function QuotationListPage() {
                     formatCurrency={
                       formatCurrency
                     }
+                    isFinance={user?.role === "FINANCE"}
                     isStatusOpen={openStatusId === quotation.id}
                     isUpdatingStatus={updatingStatusId === quotation.id}
                     onToggleStatus={() => setOpenStatusId((openId) => openId === quotation.id ? null : quotation.id)}
@@ -666,6 +675,7 @@ function SummaryCard({
 function QuotationRow({
   quotation,
   formatCurrency,
+  isFinance,
   isStatusOpen,
   isUpdatingStatus,
   onToggleStatus,
@@ -673,6 +683,7 @@ function QuotationRow({
 }: Readonly<{
   quotation: Quotation;
   formatCurrency: (value: number) => string;
+  isFinance: boolean;
   isStatusOpen: boolean;
   isUpdatingStatus: boolean;
   onToggleStatus: () => void;
@@ -760,6 +771,17 @@ function QuotationRow({
 
       </td>
 
+      {/* CREATED BY */}
+
+      <td className="px-4 py-4">
+        <div className="flex items-center gap-2">
+          <MdPerson size={16} className="text-slate-400" />
+          <p className="text-sm text-slate-600">
+            {quotation.createdBy}
+          </p>
+        </div>
+      </td>
+
       {/* AMOUNT */}
 
       <td className="px-4 py-4 text-right">
@@ -788,7 +810,8 @@ function QuotationRow({
             }
             onToggleStatus();
           }}
-          disabled={isUpdatingStatus}
+          disabled={isUpdatingStatus || isFinance}
+          title={isFinance ? "Finance users cannot change quotation status" : ""}
           aria-haspopup="listbox"
           aria-expanded={isStatusOpen}
           className={`

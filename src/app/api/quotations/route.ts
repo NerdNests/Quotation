@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/libs/prisma";
+import { verifySessionToken, SESSION_COOKIE } from "@/libs/session";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +18,11 @@ const asDate = (value: unknown) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const quotations = await prisma.quotation.findMany({
       orderBy: { createdAt: "desc" },
-      select: { id: true, quotationNumber: true, customerName: true, customerCompany: true, grandTotal: true, status: true, quotationDate: true, validUntil: true },
+      select: { id: true, quotationNumber: true, customerName: true, customerCompany: true, grandTotal: true, status: true, quotationDate: true, validUntil: true, createdBy: { select: { firstName: true, lastName: true } } },
     });
     return NextResponse.json({ quotations });
   } catch (error) {
@@ -30,8 +31,14 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const token = request.cookies.get(SESSION_COOKIE)?.value;
+    const payload = await verifySessionToken(token);
+    if (!payload || !payload.userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { quotation, company, customer } = body ?? {};
     const rawServices = Array.isArray(body?.services) ? body.services : [];
@@ -65,7 +72,7 @@ export async function POST(request: Request) {
     const items = services.map((service) => ({ serviceName: service.serviceName, description: service.description, quantity: service.quantity!, price: service.price!, total: service.quantity! * service.price! }));
     const savedQuotation = await prisma.quotation.upsert({
       where: { quotationNumber: quotation.number.trim() },
-      create: { quotationNumber: quotation.number.trim(), ...data, status: "SENT", items: { create: items } },
+      create: { quotationNumber: quotation.number.trim(), ...data, status: "SENT", createdById: payload.userId, items: { create: items } },
       update: { ...data, items: { deleteMany: {}, create: items } },
       include: { items: true },
     });
@@ -76,8 +83,19 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
   try {
+    const token = request.cookies.get(SESSION_COOKIE)?.value;
+    const payload = await verifySessionToken(token);
+    if (!payload || !payload.userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role === "FINANCE") {
+      return NextResponse.json({ message: "Finance users cannot change quotation status" }, { status: 403 });
+    }
+
     const body = await request.json();
     const statuses = ["DRAFT", "SENT", "WON", "DROPPED"] as const;
 

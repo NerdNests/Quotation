@@ -9,14 +9,16 @@ import {
   MdFolderOpen,
   MdChevronLeft,
   MdChevronRight,
+  MdGroup,
 } from "react-icons/md";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarProps {
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
 }
 
-const menuItems = [
+const baseMenuItems = [
   {
     label: "Dashboard",
     href: "/",
@@ -44,6 +46,12 @@ export default function Sidebar({
   setCollapsed,
 }: Readonly<SidebarProps>) {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const menuItems = [
+      ...baseMenuItems,
+      ...(user?.role === "ADMIN" ? [{ label: "Users", href: "/users", icon: MdGroup }] : [])
+  ];
 
   return (
     <aside
@@ -228,17 +236,17 @@ export default function Sidebar({
               text-white
             "
           >
-            V
+            {(user?.firstName?.charAt(0) || "U") + (user?.lastName?.charAt(0) || "")}
           </div>
 
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-slate-800">
-                Vishnu
+                {user?.firstName} {user?.lastName}
               </p>
 
               <p className="truncate text-[11px] text-slate-500">
-                Administrator
+                {user?.role === "SALES_EXECUTIVE" ? "Sales Executive" : user?.role === "FINANCE" ? "Finance" : "Administrator"}
               </p>
             </div>
           )}

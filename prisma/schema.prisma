@@ -14,14 +14,22 @@ enum QuotationStatus {
   DROPPED
 }
 
+enum Role {
+  ADMIN
+  FINANCE
+  SALES_EXECUTIVE
+}
+
 model User {
   id           String   @id @default(cuid())
-  firstName    String   @default("")
-  lastName     String   @default("")
-  email        String   @unique
+  firstName    String      @default("")
+  lastName     String      @default("")
+  email        String      @unique
   passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role        @default(SALES_EXECUTIVE)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  quotations   Quotation[]
 }
 
 model Quotation {
@@ -46,6 +54,8 @@ model Quotation {
   grandTotal       Float
   status           QuotationStatus @default(SENT)
   items            QuotationItem[]
+  createdById      String?
+  createdBy        User?           @relation(fields: [createdById], references: [id])
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
