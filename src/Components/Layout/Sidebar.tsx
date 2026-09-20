@@ -7,6 +7,7 @@ import {
   MdAddCircleOutline,
   MdDescription,
   MdFolderOpen,
+  MdReceiptLong,
   MdChevronLeft,
   MdChevronRight,
   MdGroup,
@@ -38,6 +39,11 @@ const baseMenuItems = [
     label: "Projects",
     href: "/quotation/projects",
     icon: MdFolderOpen,
+  },
+  {
+    label: "Invoices",
+    href: "/invoice",
+    icon: MdReceiptLong,
   },
 ];
 
