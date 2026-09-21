@@ -12,33 +12,43 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const invoices = await prisma.quotation.findMany({
-      where: { status: "WON" },
+    const invoiceRecords = await prisma.invoice.findMany({
       orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        quotationNumber: true,
-        quotationDate: true,
-        companyName: true,
-        companyAddress: true,
-        companyPhone: true,
-        companyEmail: true,
-        customerName: true,
-        customerCompany: true,
-        customerAddress: true,
-        customerPhone: true,
-        customerEmail: true,
-        subtotal: true,
-        discountPercent: true,
-        discountAmount: true,
-        taxPercent: true,
-        taxAmount: true,
-        grandTotal: true,
-        items: {
-          select: { id: true, serviceName: true, description: true, quantity: true, price: true, total: true },
+      include: {
+        quotation: {
+          select: {
+            id: true,
+            quotationNumber: true,
+            quotationDate: true,
+            companyName: true,
+            companyAddress: true,
+            companyPhone: true,
+            companyEmail: true,
+            customerName: true,
+            customerCompany: true,
+            customerAddress: true,
+            customerPhone: true,
+            customerEmail: true,
+            subtotal: true,
+            discountPercent: true,
+            discountAmount: true,
+            taxPercent: true,
+            taxAmount: true,
+            grandTotal: true,
+            items: {
+              select: { id: true, serviceName: true, description: true, quantity: true, price: true, total: true },
+            },
+          },
         },
       },
     });
+
+    const invoices = invoiceRecords.map(record => ({
+      ...record.quotation,
+      invoiceId: record.id,
+      invoiceNumber: record.invoiceNumber,
+      paymentStatus: record.paymentStatus,
+    }));
 
     return NextResponse.json({ invoices });
   } catch (error) {

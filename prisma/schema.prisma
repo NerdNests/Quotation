@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum PaymentStatus {
+  UNPAID
+  PAID
+}
+
 enum QuotationStatus {
   DRAFT
   SENT
@@ -21,7 +26,7 @@ enum Role {
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id           String      @id @default(cuid())
   firstName    String      @default("")
   lastName     String      @default("")
   email        String      @unique
@@ -33,31 +38,32 @@ model User {
 }
 
 model Quotation {
-  id               String          @id @default(cuid())
-  quotationNumber  String          @unique
-  quotationDate    DateTime
-  validUntil       DateTime
-  companyName      String
-  companyAddress   String?
-  companyPhone     String?
-  companyEmail     String?
-  customerName     String
-  customerCompany  String?
-  customerAddress  String?
-  customerPhone    String?
-  customerEmail    String?
-  subtotal         Float
-  discountPercent  Float           @default(0)
-  discountAmount   Float           @default(0)
-  taxPercent       Float           @default(0)
-  taxAmount        Float           @default(0)
-  grandTotal       Float
-  status           QuotationStatus @default(SENT)
-  items            QuotationItem[]
-  createdById      String?
-  createdBy        User?           @relation(fields: [createdById], references: [id])
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  id              String          @id @default(cuid())
+  quotationNumber String          @unique
+  quotationDate   DateTime
+  validUntil      DateTime
+  companyName     String
+  companyAddress  String?
+  companyPhone    String?
+  companyEmail    String?
+  customerName    String
+  customerCompany String?
+  customerAddress String?
+  customerPhone   String?
+  customerEmail   String?
+  subtotal        Float
+  discountPercent Float           @default(0)
+  discountAmount  Float           @default(0)
+  taxPercent      Float           @default(0)
+  taxAmount       Float           @default(0)
+  grandTotal      Float
+  status          QuotationStatus @default(SENT)
+  items           QuotationItem[]
+  invoice         Invoice?
+  createdById     String?
+  createdBy       User?           @relation(fields: [createdById], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([createdAt])
   @@index([status])
@@ -72,4 +78,17 @@ model QuotationItem {
   price       Float
   total       Float
   quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+  quotationId     String        @unique
+  paymentStatus   PaymentStatus @default(UNPAID)
+  quotation       Quotation     @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([createdAt])
+  @@index([paymentStatus])
 }

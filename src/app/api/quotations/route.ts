@@ -103,10 +103,26 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: "A quotation id and valid status are required" }, { status: 400 });
     }
 
-    const quotation = await prisma.quotation.update({
-      where: { quotationNumber: body.id.trim() },
-      data: { status: body.status },
-      select: { quotationNumber: true, status: true },
+    const quotation = await prisma.$transaction(async (tx) => {
+      const updated = await tx.quotation.update({
+        where: { quotationNumber: body.id.trim() },
+        data: { status: body.status },
+        select: { id: true, quotationNumber: true, status: true },
+      });
+
+      if (updated.status === "WON") {
+        await tx.invoice.upsert({
+          where: { quotationId: updated.id },
+          create: {
+            invoiceNumber: `INV-${updated.quotationNumber}`,
+            quotationId: updated.id,
+            paymentStatus: "UNPAID",
+          },
+          update: {}, // Do nothing if it already exists
+        });
+      }
+
+      return updated;
     });
 
     return NextResponse.json({ quotation });

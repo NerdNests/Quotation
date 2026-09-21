@@ -11,6 +11,7 @@ import {
   MdChevronLeft,
   MdChevronRight,
   MdGroup,
+  MdAttachMoney,
 } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -39,6 +40,11 @@ const baseMenuItems = [
     label: "Projects",
     href: "/quotation/projects",
     icon: MdFolderOpen,
+  },
+  {
+    label: "Payments",
+    href: "/payment",
+    icon: MdAttachMoney,
   },
   {
     label: "Invoices",
