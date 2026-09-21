@@ -1,19 +1,20 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { MdDownload } from "react-icons/md";
 import QuotationForm, { type Company, type Customer, type Quotation, type Service } from "@/Components/Dashboard/CreateQuotation";
 import QuotationPDF from "@/Components/Dashboard/QuotationPDF";
 import QuotationLayout from "@/Components/Layout/Layout";
 
 const initialCompany: Company = {
-    name: "Your Company", address: "Your company address", phone: "+91 00000 00000", email: "hello@yourcompany.com",
+    name: "Your Company", address: "Your company address", phone: "+91 00000 00000", email: "hello@yourcompany.com", gst: "", pan: "",
 };
 const initialCustomer: Customer = { name: "", company: "", address: "", phone: "", email: "" };
 const initialQuotation: Quotation = {
-    number: "QT-2026-0001",
+    number: "0001",
     date: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date()),
     validUntil: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)),
+    termsAndConditions: "",
 };
 const initialService: Service = { id: 1, name: "", description: "", quantity: 1, price: 0 };
 
@@ -22,6 +23,23 @@ export default function CreateQuotationPage() {
     const [company, setCompany] = useState<Company>(initialCompany);
     const [customer, setCustomer] = useState<Customer>(initialCustomer);
     const [quotation, setQuotation] = useState<Quotation>(initialQuotation);
+
+    useEffect(() => {
+        const fetchNextNumber = async () => {
+            try {
+                const response = await fetch("/api/quotations/next-number");
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.nextNumber) {
+                        setQuotation((q) => ({ ...q, number: data.nextNumber }));
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch next quotation number", error);
+            }
+        };
+        fetchNextNumber();
+    }, []);
     const [services, setServices] = useState<Service[]>([initialService]);
     const [tax, setTax] = useState(18);
     const [discount, setDiscount] = useState(0);

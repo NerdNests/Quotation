@@ -13,14 +13,6 @@ type Props = {
     grandTotal: number;
 };
 
-const terms = [
-    "Quotation is valid for 15 days from the quotation date.",
-    "50% advance payment is required to initiate the project.",
-    "Remaining payment will be collected based on agreed milestones.",
-    "Any additional requirements outside the agreed scope will be charged separately.",
-    "Project timelines depend on timely feedback and content from the customer.",
-];
-
 export default function QuotationPDF({
     company,
     customer,
@@ -49,163 +41,164 @@ export default function QuotationPDF({
                 margin: "0 auto",
                 backgroundColor: "#ffffff",
                 color: "#1e293b",
-                fontFamily: '"Inter", "system-ui", -apple-system, sans-serif',
+                fontFamily: '"Inter", "Arial", sans-serif',
                 boxSizing: "border-box",
+                padding: "0",
                 position: "relative",
-                overflow: "hidden",
             }}
         >
-            {/* Elegant Top Border */}
-            <div style={{ height: "8px", background: "linear-gradient(90deg, #312e81 0%, #4f46e5 50%, #818cf8 100%)", width: "100%" }} />
+            {/* Top Accent Bar */}
+            <div style={{ height: "8px", width: "100%", backgroundColor: "#4f46e5" }} />
 
             <div style={{ padding: "50px 60px" }}>
-                {/* Header Row */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #f1f5f9", paddingBottom: "32px", marginBottom: "32px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                        {/* Elegant Logo Mark */}
-                        <div style={{ width: "64px", height: "64px", background: "#4f46e5", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "32px", fontWeight: 800 }}>
-                            {company.name.charAt(0) || "C"}
-                        </div>
-                        <div>
-                            <h1 style={{ margin: 0, fontSize: "32px", fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
-                                {company.name || "Your Company"}
-                            </h1>
-                            <p style={{ margin: "4px 0 0 0", fontSize: "14px", color: "#64748b", fontWeight: 500, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                                Business Proposal
-                            </p>
-                        </div>
+                {/* Header */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px" }}>
+                    <div>
+                        <h1 style={{ margin: 0, fontSize: "32px", fontWeight: 800, color: "#0f172a", letterSpacing: "-0.5px" }}>
+                            {company.name || "YOUR COMPANY"}
+                        </h1>
+                        <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600 }}>
+                            {company.email} {company.phone && `| ${company.phone}`}
+                        </p>
                     </div>
-                    
                     <div style={{ textAlign: "right" }}>
-                        <h2 style={{ margin: "0 0 16px 0", fontSize: "40px", fontWeight: 900, color: "#f1f5f9", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                        <h2 style={{ margin: 0, fontSize: "36px", fontWeight: 900, color: "#e2e8f0", letterSpacing: "2px", textTransform: "uppercase" }}>
                             QUOTATION
                         </h2>
-                        <table style={{ marginLeft: "auto", borderCollapse: "collapse", fontSize: "13px" }}>
-                            <tbody>
-                                <tr>
-                                    <td style={{ padding: "4px 16px 4px 0", color: "#64748b", fontWeight: 600, textAlign: "right" }}>Reference No:</td>
-                                    <td style={{ padding: "4px 0", color: "#0f172a", fontWeight: 700 }}>{quotation.number}</td>
-                                </tr>
-                                <tr>
-                                    <td style={{ padding: "4px 16px 4px 0", color: "#64748b", fontWeight: 600, textAlign: "right" }}>Date of Issue:</td>
-                                    <td style={{ padding: "4px 0", color: "#0f172a", fontWeight: 700 }}>{quotation.date}</td>
-                                </tr>
-                                <tr>
-                                    <td style={{ padding: "4px 16px 4px 0", color: "#64748b", fontWeight: 600, textAlign: "right" }}>Valid Until:</td>
-                                    <td style={{ padding: "4px 0", color: "#ef4444", fontWeight: 700 }}>{quotation.validUntil}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Addresses */}
-                <div style={{ display: "flex", gap: "64px", marginBottom: "48px" }}>
-                    <div style={{ flex: 1 }}>
-                        <p style={{ margin: "0 0 12px 0", fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#94a3b8" }}>Prepared By</p>
-                        <h3 style={{ margin: "0 0 8px 0", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>{company.name || "Your Company"}</h3>
-                        <div style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6" }}>
-                            {company.address && <p style={{ margin: "0" }}>{company.address}</p>}
-                            {company.phone && <p style={{ margin: "4px 0 0 0" }}>T: {company.phone}</p>}
-                            {company.email && <p style={{ margin: "4px 0 0 0" }}>E: {company.email}</p>}
-                        </div>
-                    </div>
-                    <div style={{ width: "2px", background: "#f1f5f9" }} />
-                    <div style={{ flex: 1 }}>
-                        <p style={{ margin: "0 0 12px 0", fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#4f46e5" }}>Prepared For</p>
-                        <h3 style={{ margin: "0 0 4px 0", fontSize: "18px", fontWeight: 800, color: "#0f172a" }}>{customer.company || "Client Company"}</h3>
-                        <p style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#334155", fontWeight: 600 }}>ATTN: {customer.name || "Client Name"}</p>
-                        <div style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6" }}>
-                            {customer.address && <p style={{ margin: "0" }}>{customer.address}</p>}
-                            {customer.phone && <p style={{ margin: "4px 0 0 0" }}>T: {customer.phone}</p>}
-                            {customer.email && <p style={{ margin: "4px 0 0 0" }}>E: {customer.email}</p>}
+                        <div style={{ marginTop: "8px", fontSize: "14px", fontWeight: 600, color: "#4f46e5" }}>
+                            # {quotation.number}
                         </div>
                     </div>
                 </div>
 
-                {/* Services Table */}
-                <div style={{ marginBottom: "48px" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                {/* Meta & Addresses */}
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "40px" }}>
+                    {/* From */}
+                    <div style={{ width: "45%" }}>
+                        <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>From</div>
+                        <div style={{ fontSize: "13px", lineHeight: 1.6 }}>
+                            <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "14px" }}>{company.name}</div>
+                            {company.address && <div style={{ whiteSpace: "pre-wrap", color: "#475569", marginTop: "4px" }}>{company.address}</div>}
+                            {(company.gst || company.pan) && (
+                                <div style={{ marginTop: "8px", fontSize: "12px", color: "#64748b", display: "flex", gap: "12px" }}>
+                                    {company.gst && <div><span style={{ fontWeight: 600 }}>GST:</span> {company.gst}</div>}
+                                    {company.pan && <div><span style={{ fontWeight: 600 }}>PAN:</span> {company.pan}</div>}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Billed To */}
+                    <div style={{ width: "45%" }}>
+                        <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Billed To</div>
+                        <div style={{ fontSize: "13px", lineHeight: 1.6 }}>
+                            <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "14px" }}>{customer.name}</div>
+                            {customer.company && <div style={{ color: "#334155", fontWeight: 500 }}>{customer.company}</div>}
+                            {customer.address && <div style={{ whiteSpace: "pre-wrap", color: "#475569", marginTop: "4px" }}>{customer.address}</div>}
+                            {customer.phone && <div style={{ color: "#475569" }}>{customer.phone}</div>}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Dates Section */}
+                <div style={{ display: "flex", gap: "40px", marginBottom: "40px", backgroundColor: "#f8fafc", padding: "16px 24px", borderRadius: "8px", borderLeft: "4px solid #4f46e5" }}>
+                    <div>
+                        <div style={{ fontSize: "11px", color: "#64748b", fontWeight: 600, marginBottom: "4px" }}>DATE OF ISSUE</div>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>{quotation.date || "—"}</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: "11px", color: "#64748b", fontWeight: 600, marginBottom: "4px" }}>VALID UNTIL</div>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>{quotation.validUntil || "—"}</div>
+                    </div>
+                </div>
+
+                {/* Table */}
+                <div style={{ marginBottom: "30px" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", textAlign: "left" }}>
                         <thead>
                             <tr>
-                                <th style={{ width: "50%", padding: "12px 16px", textAlign: "left", fontSize: "12px", fontWeight: 700, color: "#ffffff", backgroundColor: "#312e81", borderTopLeftRadius: "8px", borderBottomLeftRadius: "8px" }}>Service Description</th>
-                                <th style={{ width: "10%", padding: "12px 16px", textAlign: "center", fontSize: "12px", fontWeight: 700, color: "#ffffff", backgroundColor: "#312e81" }}>Qty</th>
-                                <th style={{ width: "20%", padding: "12px 16px", textAlign: "right", fontSize: "12px", fontWeight: 700, color: "#ffffff", backgroundColor: "#312e81" }}>Rate</th>
-                                <th style={{ width: "20%", padding: "12px 16px", textAlign: "right", fontSize: "12px", fontWeight: 700, color: "#ffffff", backgroundColor: "#312e81", borderTopRightRadius: "8px", borderBottomRightRadius: "8px" }}>Amount</th>
+                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", width: "50%", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px" }}>Description</th>
+                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "center", width: "15%" }}>Qty</th>
+                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "center", width: "15%" }}>Price</th>
+                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "right", width: "20%", borderTopRightRadius: "6px", borderBottomRightRadius: "6px" }}>Amount</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {services.map((service, idx) => (
-                                <tr key={service.id} style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                            {services.map((service, index) => (
+                                <tr key={service.id || index} style={{ borderBottom: "1px solid #e2e8f0" }}>
                                     <td style={{ padding: "16px", verticalAlign: "top" }}>
-                                        <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>{service.name || "Service Item"}</p>
-                                        <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#64748b", lineHeight: "1.5" }}>{service.description || "—"}</p>
+                                        <div style={{ fontWeight: 600, color: "#0f172a" }}>{service.name}</div>
+                                        {service.description && <div style={{ color: "#64748b", fontSize: "12px", marginTop: "4px", lineHeight: 1.4 }}>{service.description}</div>}
                                     </td>
-                                    <td style={{ padding: "16px", textAlign: "center", verticalAlign: "top", fontSize: "13px", color: "#334155", fontWeight: 600 }}>{service.quantity}</td>
-                                    <td style={{ padding: "16px", textAlign: "right", verticalAlign: "top", fontSize: "13px", color: "#334155", fontWeight: 600 }}>{formatCurrency(service.price)}</td>
-                                    <td style={{ padding: "16px", textAlign: "right", verticalAlign: "top", fontSize: "14px", color: "#0f172a", fontWeight: 700 }}>{formatCurrency(service.quantity * service.price)}</td>
+                                    <td style={{ padding: "16px", textAlign: "center", verticalAlign: "top", color: "#334155" }}>{service.quantity}</td>
+                                    <td style={{ padding: "16px", textAlign: "center", verticalAlign: "top", color: "#334155" }}>{formatCurrency(service.price)}</td>
+                                    <td style={{ padding: "16px", textAlign: "right", verticalAlign: "top", fontWeight: 600, color: "#0f172a" }}>{formatCurrency(service.quantity * service.price)}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Summary Section */}
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "48px" }}>
-                    <div style={{ width: "320px" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-                            <tbody>
-                                <tr>
-                                    <td style={{ padding: "8px 16px", color: "#475569", fontWeight: 600 }}>Subtotal</td>
-                                    <td style={{ padding: "8px 16px", textAlign: "right", color: "#0f172a", fontWeight: 700 }}>{formatCurrency(subtotal)}</td>
-                                </tr>
-                                {discount > 0 && (
-                                    <tr>
-                                        <td style={{ padding: "8px 16px", color: "#ef4444", fontWeight: 600 }}>Discount ({discount}%)</td>
-                                        <td style={{ padding: "8px 16px", textAlign: "right", color: "#ef4444", fontWeight: 700 }}>-{formatCurrency(discountAmount)}</td>
-                                    </tr>
-                                )}
-                                {tax > 0 && (
-                                    <tr>
-                                        <td style={{ padding: "8px 16px", color: "#475569", fontWeight: 600 }}>Tax ({tax}%)</td>
-                                        <td style={{ padding: "8px 16px", textAlign: "right", color: "#0f172a", fontWeight: 700 }}>{formatCurrency(taxAmount)}</td>
-                                    </tr>
-                                )}
-                                <tr>
-                                    <td colSpan={2} style={{ padding: "16px 0 0 0" }}>
-                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#4f46e5", padding: "16px", borderRadius: "8px", color: "white" }}>
-                                            <span style={{ fontSize: "16px", fontWeight: 700 }}>Total Due</span>
-                                            <span style={{ fontSize: "24px", fontWeight: 800 }}>{formatCurrency(grandTotal)}</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                {/* Summary */}
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "40px" }}>
+                    <div style={{ width: "300px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: "13px", color: "#475569" }}>
+                            <span>Subtotal</span>
+                            <span style={{ fontWeight: 500, color: "#0f172a" }}>{formatCurrency(subtotal)}</span>
+                        </div>
+                        {discountAmount > 0 && (
+                            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: "13px", color: "#ef4444" }}>
+                                <span>Discount ({discount}%)</span>
+                                <span style={{ fontWeight: 500 }}>-{formatCurrency(discountAmount)}</span>
+                            </div>
+                        )}
+                        <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: "13px", color: "#475569" }}>
+                            <span>Tax ({tax}%)</span>
+                            <span style={{ fontWeight: 500, color: "#0f172a" }}>{formatCurrency(taxAmount)}</span>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", marginTop: "12px", fontSize: "16px", fontWeight: 700, backgroundColor: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                            <span>Grand Total</span>
+                            <span style={{ color: "#4f46e5" }}>{formatCurrency(grandTotal)}</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Terms and Signature */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "64px" }}>
-                    <div style={{ maxWidth: "400px" }}>
-                        <h4 style={{ margin: "0 0 12px 0", fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.05em" }}>Terms & Conditions</h4>
-                        <ol style={{ margin: 0, paddingLeft: "16px", color: "#64748b", fontSize: "11px", lineHeight: "1.6" }}>
-                            {terms.map((term, index) => (
-                                <li key={index} style={{ marginBottom: "6px" }}>{term}</li>
-                            ))}
-                        </ol>
+                {/* Terms and Signatures */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "40px" }}>
+                    {/* Terms */}
+                    <div style={{ width: "50%", fontSize: "11px", color: "#64748b", lineHeight: 1.5 }}>
+                        {quotation.termsAndConditions && (
+                            <>
+                                <div style={{ fontWeight: 700, color: "#0f172a", marginBottom: "6px", fontSize: "12px" }}>Terms & Conditions</div>
+                                <div style={{ whiteSpace: "pre-wrap" }}>{quotation.termsAndConditions}</div>
+                            </>
+                        )}
+                        {!quotation.termsAndConditions && (
+                            <div style={{ fontStyle: "italic" }}>No specific terms and conditions provided for this quotation.</div>
+                        )}
                     </div>
-                    
-                    <div style={{ width: "240px", textAlign: "center" }}>
-                        <div style={{ height: "60px", borderBottom: "2px solid #cbd5e1", marginBottom: "12px" }} />
-                        <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>Authorized Signatory</p>
-                        <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#64748b" }}>{company.name || "Your Company"}</p>
+
+                    {/* Signatures */}
+                    <div style={{ width: "40%", display: "flex", justifyContent: "space-between", gap: "20px" }}>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                            <div style={{ height: "60px" }}></div>
+                            <div style={{ borderTop: "1px solid #94a3b8", paddingTop: "8px", fontSize: "11px", color: "#475569", fontWeight: 500 }}>
+                                Authorized Signatory
+                            </div>
+                        </div>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                            <div style={{ height: "60px" }}></div>
+                            <div style={{ borderTop: "1px solid #94a3b8", paddingTop: "8px", fontSize: "11px", color: "#475569", fontWeight: 500 }}>
+                                Authorized Signatory
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            {/* Elegant Bottom Accent */}
-            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "4px", backgroundColor: "#e2e8f0" }}>
-                <div style={{ width: "30%", height: "100%", background: "linear-gradient(90deg, #4f46e5 0%, #818cf8 100%)" }} />
+
+            {/* Bottom Footer Pattern */}
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40px", backgroundColor: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "#94a3b8", fontWeight: 500, letterSpacing: "0.5px" }}>
+                THANK YOU FOR YOUR BUSINESS
             </div>
         </div>
     );

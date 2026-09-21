@@ -24,6 +24,8 @@ export type Company = {
     address: string;
     phone: string;
     email: string;
+    gst: string;
+    pan: string;
 };
 
 export type Customer = {
@@ -38,6 +40,7 @@ export type Quotation = {
     number: string;
     date: string;
     validUntil: string;
+    termsAndConditions: string;
 };
 
 type Props = {
@@ -158,6 +161,18 @@ export default function QuotationForm({
                         />
                     </div>
                 </div>
+                <div className="mt-4">
+                    <Textarea
+                        label="Terms & Conditions"
+                        value={quotation.termsAndConditions || ""}
+                        onChange={(value) =>
+                            setQuotation((current) => ({
+                                ...current,
+                                termsAndConditions: value,
+                            }))
+                        }
+                    />
+                </div>
             </section>
 
             {/* COMPANY + CUSTOMER */}
@@ -214,6 +229,29 @@ export default function QuotationForm({
                                     setCompany((current) => ({
                                         ...current,
                                         email: value,
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2 mt-4">
+                            <Input
+                                label="GST"
+                                value={company.gst || ""}
+                                onChange={(value) =>
+                                    setCompany((current) => ({
+                                        ...current,
+                                        gst: value,
+                                    }))
+                                }
+                            />
+
+                            <Input
+                                label="PAN"
+                                value={company.pan || ""}
+                                onChange={(value) =>
+                                    setCompany((current) => ({
+                                        ...current,
+                                        pan: value,
                                     }))
                                 }
                             />

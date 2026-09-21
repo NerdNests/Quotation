@@ -65,8 +65,9 @@ export async function POST(request: NextRequest) {
 
     const optional = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : null;
     const data = {
-      quotationDate, validUntil, companyName: company.name.trim(), companyAddress: optional(company.address), companyPhone: optional(company.phone), companyEmail: optional(company.email),
+      quotationDate, validUntil, companyName: company.name.trim(), companyAddress: optional(company.address), companyPhone: optional(company.phone), companyEmail: optional(company.email), companyGst: optional(company.gst), companyPan: optional(company.pan),
       customerName: customer.name.trim(), customerCompany: optional(customer.company), customerAddress: optional(customer.address), customerPhone: optional(customer.phone), customerEmail: optional(customer.email),
+      termsAndConditions: optional(quotation.termsAndConditions),
       subtotal: subtotal!, discountPercent: discountPercent!, discountAmount: discountAmount!, taxPercent: taxPercent!, taxAmount: taxAmount!, grandTotal: grandTotal!,
     };
     const items = services.map((service) => ({ serviceName: service.serviceName, description: service.description, quantity: service.quantity!, price: service.price!, total: service.quantity! * service.price! }));

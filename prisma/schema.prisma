@@ -46,11 +46,14 @@ model Quotation {
   companyAddress  String?
   companyPhone    String?
   companyEmail    String?
+  companyGst      String?
+  companyPan      String?
   customerName    String
   customerCompany String?
   customerAddress String?
   customerPhone   String?
   customerEmail   String?
+  termsAndConditions String?
   subtotal        Float
   discountPercent Float           @default(0)
   discountAmount  Float           @default(0)

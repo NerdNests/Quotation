@@ -135,7 +135,7 @@ export default function Sidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-2 px-3 py-6">
+      <nav className="flex-1 overflow-y-auto min-h-0 space-y-2 px-3 py-6 no-scrollbar">
         {!collapsed && (
           <p
             className="
