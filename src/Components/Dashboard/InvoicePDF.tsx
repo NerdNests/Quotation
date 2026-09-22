@@ -42,26 +42,26 @@ export default function InvoicePDF({ invoice }: Readonly<{ invoice: Invoice }>) 
       }}
     >
       {/* Top Accent Bar */}
-      <div style={{ height: "8px", width: "100%", backgroundColor: "#4f46e5" }} />
+      <div style={{ height: "8px", width: "100%", backgroundColor: "#10b981" }} />
 
       <div style={{ padding: "50px 60px" }}>
-        {/* Header */}
+        {/* Header (Swapped compared to Quotation) */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px" }}>
             <div>
+                <h2 style={{ margin: 0, fontSize: "36px", fontWeight: 900, color: "#e2e8f0", letterSpacing: "2px", textTransform: "uppercase" }}>
+                    INVOICE
+                </h2>
+                <div style={{ marginTop: "8px", fontSize: "14px", fontWeight: 600, color: "#10b981" }}>
+                    # INV-{invoice.quotationNumber.padStart(6, '0')}
+                </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
                 <h1 style={{ margin: 0, fontSize: "32px", fontWeight: 800, color: "#0f172a", letterSpacing: "-0.5px" }}>
                     {invoice.companyName || "YOUR COMPANY"}
                 </h1>
                 <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600 }}>
                     {invoice.companyEmail} {invoice.companyPhone && `| ${invoice.companyPhone}`}
                 </p>
-            </div>
-            <div style={{ textAlign: "right" }}>
-                <h2 style={{ margin: 0, fontSize: "36px", fontWeight: 900, color: "#e2e8f0", letterSpacing: "2px", textTransform: "uppercase" }}>
-                    INVOICE
-                </h2>
-                <div style={{ marginTop: "8px", fontSize: "14px", fontWeight: 600, color: "#4f46e5" }}>
-                    # INV-{invoice.quotationNumber.padStart(6, '0')}
-                </div>
             </div>
         </div>
 
@@ -96,14 +96,14 @@ export default function InvoicePDF({ invoice }: Readonly<{ invoice: Invoice }>) 
         </div>
 
         {/* Dates Section */}
-        <div style={{ display: "flex", gap: "40px", marginBottom: "40px", backgroundColor: "#f8fafc", padding: "16px 24px", borderRadius: "8px", borderLeft: "4px solid #4f46e5" }}>
+        <div style={{ display: "flex", gap: "40px", marginBottom: "40px", backgroundColor: "#ecfdf5", padding: "16px 24px", borderRadius: "8px", borderLeft: "4px solid #10b981" }}>
             <div>
-                <div style={{ fontSize: "11px", color: "#64748b", fontWeight: 600, marginBottom: "4px" }}>DATE OF ISSUE</div>
-                <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>{date || "—"}</div>
+                <div style={{ fontSize: "11px", color: "#047857", fontWeight: 600, marginBottom: "4px" }}>DATE OF ISSUE</div>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "#064e3b" }}>{date || "—"}</div>
             </div>
             <div>
-                <div style={{ fontSize: "11px", color: "#64748b", fontWeight: 600, marginBottom: "4px" }}>REF QUOTATION</div>
-                <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>{invoice.quotationNumber || "—"}</div>
+                <div style={{ fontSize: "11px", color: "#047857", fontWeight: 600, marginBottom: "4px" }}>REF QUOTATION</div>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "#064e3b" }}>{invoice.quotationNumber || "—"}</div>
             </div>
         </div>
 
@@ -112,10 +112,10 @@ export default function InvoicePDF({ invoice }: Readonly<{ invoice: Invoice }>) 
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", textAlign: "left" }}>
                 <thead>
                     <tr>
-                        <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", width: "50%", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px" }}>Item</th>
-                        <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "center", width: "15%" }}>Qty</th>
-                        <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "center", width: "15%" }}>Price</th>
-                        <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "right", width: "20%", borderTopRightRadius: "6px", borderBottomRightRadius: "6px" }}>Amount</th>
+                        <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#10b981", width: "50%", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px", verticalAlign: "middle" }}>Item</th>
+                        <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#10b981", textAlign: "center", width: "15%", verticalAlign: "middle" }}>Qty</th>
+                        <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#10b981", textAlign: "center", width: "15%", verticalAlign: "middle" }}>Price</th>
+                        <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#10b981", textAlign: "right", width: "20%", borderTopRightRadius: "6px", borderBottomRightRadius: "6px", verticalAlign: "middle" }}>Amount</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -151,9 +151,9 @@ export default function InvoicePDF({ invoice }: Readonly<{ invoice: Invoice }>) 
                     <span>Tax ({invoice.taxPercent}%)</span>
                     <span style={{ fontWeight: 500, color: "#0f172a" }}>{money(invoice.taxAmount)}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", marginTop: "12px", fontSize: "16px", fontWeight: 700, backgroundColor: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", marginTop: "12px", fontSize: "16px", fontWeight: 700, backgroundColor: "#ecfdf5", borderRadius: "8px", border: "1px solid #a7f3d0" }}>
                     <span>Total Due</span>
-                    <span style={{ color: "#4f46e5" }}>{money(invoice.grandTotal)}</span>
+                    <span style={{ color: "#059669" }}>{money(invoice.grandTotal)}</span>
                 </div>
             </div>
         </div>

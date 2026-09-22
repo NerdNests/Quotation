@@ -33,6 +33,7 @@ type Quotation = {
   date: string;
   validUntil: string;
   createdBy: string;
+  dropReason: string | null;
 };
 
 const formatDate = (value: string) => new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
@@ -92,7 +93,7 @@ export default function QuotationListPage() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || "Failed to load quotations");
         setQuotations(result.quotations.map((item: any) => ({
-          id: item.quotationNumber, customer: item.customerName, project: item.customerCompany || "—", amount: item.grandTotal, status: displayStatus(item.status), date: formatDate(item.quotationDate), validUntil: formatDate(item.validUntil), createdBy: item.createdBy ? `${item.createdBy.firstName} ${item.createdBy.lastName}` : "Unknown"
+          id: item.quotationNumber, customer: item.customerName, project: item.customerCompany || "—", amount: item.grandTotal, status: displayStatus(item.status), date: formatDate(item.quotationDate), validUntil: formatDate(item.validUntil), createdBy: item.createdBy ? `${item.createdBy.firstName} ${item.createdBy.lastName}` : "Unknown", dropReason: item.dropReason || null
         })));
       } catch (error) {
         setLoadError(error instanceof Error ? error.message : "Failed to load quotations");

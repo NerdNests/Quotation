@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   try {
     const quotations = await prisma.quotation.findMany({
       orderBy: { createdAt: "desc" },
-      select: { id: true, quotationNumber: true, customerName: true, customerCompany: true, grandTotal: true, status: true, quotationDate: true, validUntil: true, createdBy: { select: { firstName: true, lastName: true } } },
+      select: { id: true, quotationNumber: true, customerName: true, customerCompany: true, grandTotal: true, status: true, quotationDate: true, validUntil: true, dropReason: true, createdBy: { select: { firstName: true, lastName: true } } },
     });
     return NextResponse.json({ quotations });
   } catch (error) {
