@@ -12,6 +12,7 @@ import {
   MdChevronRight,
   MdGroup,
   MdAttachMoney,
+  MdCancel,
 } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -62,7 +63,10 @@ export default function Sidebar({
 
   const menuItems = [
       ...baseMenuItems,
-      ...(user?.role === "ADMIN" ? [{ label: "Users", href: "/users", icon: MdGroup }] : [])
+      ...(user?.role === "ADMIN" ? [
+        { label: "Dropped Quotes", href: "/dropped-quotations", icon: MdCancel },
+        { label: "Users", href: "/users", icon: MdGroup }
+      ] : [])
   ];
 
   return (

@@ -80,6 +80,8 @@ export default function QuotationListPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [openStatusId, setOpenStatusId] = useState<string | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [dropModalQuotation, setDropModalQuotation] = useState<Quotation | null>(null);
+  const [dropReason, setDropReason] = useState("");
 
   const itemsPerPage = 6;
 
@@ -129,7 +131,7 @@ export default function QuotationListPage() {
     });
   }, [quotations, search, status]);
 
-  const updateQuotationStatus = async (id: string, nextStatus: QuotationStatus) => {
+  const updateQuotationStatus = async (id: string, nextStatus: QuotationStatus, reason?: string) => {
     const databaseStatus = { Draft: "DRAFT", Submitted: "SENT", Won: "WON", Dropped: "DROPPED" }[nextStatus];
     setUpdatingStatusId(id);
     setLoadError("");
@@ -137,7 +139,7 @@ export default function QuotationListPage() {
       const response = await fetch("/api/quotations", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status: databaseStatus }),
+        body: JSON.stringify({ id, status: databaseStatus, dropReason: reason }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Failed to update quotation status");
@@ -147,6 +149,16 @@ export default function QuotationListPage() {
     } finally {
       setUpdatingStatusId(null);
       setOpenStatusId(null);
+      setDropModalQuotation(null);
+    }
+  };
+
+  const handleStatusChange = (quotation: Quotation, nextStatus: QuotationStatus) => {
+    if (nextStatus === "Dropped") {
+      setDropModalQuotation(quotation);
+      setDropReason("");
+    } else {
+      void updateQuotationStatus(quotation.id, nextStatus);
     }
   };
 
@@ -448,7 +460,7 @@ export default function QuotationListPage() {
                     isStatusOpen={openStatusId === quotation.id}
                     isUpdatingStatus={updatingStatusId === quotation.id}
                     onToggleStatus={() => setOpenStatusId((openId) => openId === quotation.id ? null : quotation.id)}
-                    onStatusChange={(nextStatus) => void updateQuotationStatus(quotation.id, nextStatus)}
+                    onStatusChange={(nextStatus) => handleStatusChange(quotation, nextStatus)}
                   />
                 )
               )}
@@ -601,6 +613,42 @@ export default function QuotationListPage() {
         </div>
 
       </div>
+
+      {dropModalQuotation && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-slate-900">Drop Quotation</h3>
+            <p className="mt-2 text-sm text-slate-500">
+              You are about to drop quotation <strong>{dropModalQuotation.id}</strong>. Please provide a reason (required).
+            </p>
+            <div className="mt-4">
+              <textarea
+                value={dropReason}
+                onChange={(e) => setDropReason(e.target.value)}
+                placeholder="Enter the reason here..."
+                className="h-28 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDropModalQuotation(null)}
+                className="rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!dropReason.trim() || isUpdatingStatus}
+                onClick={() => void updateQuotationStatus(dropModalQuotation.id, "Dropped", dropReason)}
+                className="flex items-center justify-center rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isUpdatingStatus ? "Dropping..." : "Drop Quotation"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
