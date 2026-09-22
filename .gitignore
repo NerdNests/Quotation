@@ -39,3 +39,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+id_ed25519_nerdnests
+id_ed25519_nerdnests.pub
