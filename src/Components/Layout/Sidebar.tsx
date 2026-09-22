@@ -16,6 +16,7 @@ import {
 } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
 
+
 interface SidebarProps {
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
@@ -62,11 +63,11 @@ export default function Sidebar({
   const { user } = useAuth();
 
   const menuItems = [
-      ...baseMenuItems,
-      ...(user?.role === "ADMIN" ? [
-        { label: "Dropped Quotes", href: "/dropped-quotations", icon: MdCancel },
-        { label: "Users", href: "/users", icon: MdGroup }
-      ] : [])
+    ...baseMenuItems,
+    ...(user?.role === "ADMIN" ? [
+      { label: "Dropped Quotes", href: "/dropped-quotations", icon: MdCancel },
+      { label: "Users", href: "/users", icon: MdGroup }
+    ] : [])
   ];
 
   return (
@@ -174,9 +175,8 @@ export default function Sidebar({
                 px-3 py-3
                 transition-all duration-200
 
-                ${
-                  isActive
-                    ? `
+                ${isActive
+                  ? `
                       bg-linear-to-r
                       from-indigo-500/90
                       to-violet-500/90
@@ -184,7 +184,7 @@ export default function Sidebar({
                       shadow-lg
                       shadow-indigo-500/20
                     `
-                    : `
+                  : `
                       text-slate-600
                       hover:bg-white/70
                       hover:text-slate-900
@@ -201,10 +201,9 @@ export default function Sidebar({
                   transition-transform
                   group-hover:scale-105
 
-                  ${
-                    isActive
-                      ? "text-white"
-                      : "text-slate-500"
+                  ${isActive
+                    ? "text-white"
+                    : "text-slate-500"
                   }
                 `}
               />

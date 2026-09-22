@@ -640,11 +640,11 @@ export default function QuotationListPage() {
               </button>
               <button
                 type="button"
-                disabled={!dropReason.trim() || isUpdatingStatus}
+                disabled={!dropReason.trim() || updatingStatusId === dropModalQuotation.id}
                 onClick={() => void updateQuotationStatus(dropModalQuotation.id, "Dropped", dropReason)}
                 className="flex items-center justify-center rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isUpdatingStatus ? "Dropping..." : "Drop Quotation"}
+                {updatingStatusId === dropModalQuotation.id ? "Dropping..." : "Drop Quotation"}
               </button>
             </div>
           </div>
