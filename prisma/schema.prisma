@@ -63,6 +63,7 @@ model Quotation {
   status          QuotationStatus @default(SENT)
   items           QuotationItem[]
   invoice         Invoice?
+  dropReason      String?
   createdById     String?
   createdBy       User?           @relation(fields: [createdById], references: [id])
   createdAt       DateTime        @default(now())

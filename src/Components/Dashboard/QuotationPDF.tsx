@@ -117,10 +117,10 @@ export default function QuotationPDF({
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", textAlign: "left" }}>
                         <thead>
                             <tr>
-                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", width: "50%", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px" }}>Description</th>
-                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "center", width: "15%" }}>Qty</th>
-                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "center", width: "15%" }}>Price</th>
-                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "right", width: "20%", borderTopRightRadius: "6px", borderBottomRightRadius: "6px" }}>Amount</th>
+                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", width: "50%", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px", verticalAlign: "middle" }}>Description</th>
+                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "center", width: "15%", verticalAlign: "middle" }}>Qty</th>
+                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "center", width: "15%", verticalAlign: "middle" }}>Price</th>
+                                <th style={{ padding: "12px 16px", fontWeight: 700, color: "#fff", backgroundColor: "#0f172a", textAlign: "right", width: "20%", borderTopRightRadius: "6px", borderBottomRightRadius: "6px", verticalAlign: "middle" }}>Amount</th>
                             </tr>
                         </thead>
                         <tbody>

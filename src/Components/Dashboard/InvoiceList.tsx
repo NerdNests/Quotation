@@ -46,7 +46,11 @@ export default function InvoiceList() {
       const image = canvas.toDataURL("image/png");
 
       for (let offset = 0; offset < imageHeight; offset += pageHeight) {
-        if (offset > 0) pdf.addPage();
+        if (offset > 0) {
+          // Prevent adding a new page for tiny sub-millimeter overflow
+          if (imageHeight - offset < 1) break;
+          pdf.addPage();
+        }
         pdf.addImage(image, "PNG", 0, -offset, pageWidth, imageHeight);
       }
 

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   try {
     const quotations = await prisma.quotation.findMany({
       orderBy: { createdAt: "desc" },
-      select: { id: true, quotationNumber: true, customerName: true, customerCompany: true, grandTotal: true, status: true, quotationDate: true, validUntil: true, createdBy: { select: { firstName: true, lastName: true } } },
+      select: { id: true, quotationNumber: true, customerName: true, customerCompany: true, grandTotal: true, status: true, quotationDate: true, validUntil: true, dropReason: true, createdBy: { select: { firstName: true, lastName: true } } },
     });
     return NextResponse.json({ quotations });
   } catch (error) {
@@ -104,10 +104,17 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: "A quotation id and valid status are required" }, { status: 400 });
     }
 
+    if (body.status === "DROPPED" && (typeof body.dropReason !== "string" || !body.dropReason.trim())) {
+      return NextResponse.json({ message: "A reason is required when dropping a quotation" }, { status: 400 });
+    }
+
     const quotation = await prisma.$transaction(async (tx) => {
       const updated = await tx.quotation.update({
         where: { quotationNumber: body.id.trim() },
-        data: { status: body.status },
+        data: { 
+          status: body.status,
+          dropReason: body.status === "DROPPED" ? body.dropReason.trim() : null,
+        },
         select: { id: true, quotationNumber: true, status: true },
       });
 
