@@ -10,6 +10,7 @@ export default function QuotationLayout({
     children: React.ReactNode;
 }>) {
     const [collapsed, setCollapsed] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-100 via-white to-indigo-50">
@@ -22,10 +23,20 @@ export default function QuotationLayout({
                 <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-blue-300/10 blur-3xl" />
             </div>
 
+            {/* Mobile Overlay */}
+            {mobileMenuOpen && (
+                <div 
+                    className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-sm md:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
             <Sidebar
                 collapsed={collapsed}
                 setCollapsed={setCollapsed}
+                mobileMenuOpen={mobileMenuOpen}
+                setMobileMenuOpen={setMobileMenuOpen}
             />
 
             {/* Main Content */}
@@ -40,7 +51,7 @@ export default function QuotationLayout({
         `}
             >
                 {/* Header */}
-                <Header />
+                <Header onMobileMenu={() => setMobileMenuOpen(true)} />
 
                 {/* Page Content */}
                 <div className="px-4 pb-6 pt-6 sm:px-6">

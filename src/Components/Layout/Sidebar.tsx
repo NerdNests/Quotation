@@ -20,6 +20,8 @@ import { useAuth } from "@/contexts/AuthContext";
 interface SidebarProps {
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
+  mobileMenuOpen?: boolean;
+  setMobileMenuOpen?: (value: boolean) => void;
 }
 
 const baseMenuItems = [
@@ -58,6 +60,8 @@ const baseMenuItems = [
 export default function Sidebar({
   collapsed,
   setCollapsed,
+  mobileMenuOpen,
+  setMobileMenuOpen,
 }: Readonly<SidebarProps>) {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -82,6 +86,7 @@ export default function Sidebar({
         shadow-[0_8px_40px_rgba(0,0,0,0.08)]
         transition-all duration-300
         ${collapsed ? "w-19.5" : "w-62.5"}
+        ${mobileMenuOpen ? "translate-x-0" : "-translate-x-[150%] md:translate-x-0"}
       `}
     >
       {/* Logo */}
@@ -167,6 +172,7 @@ export default function Sidebar({
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setMobileMenuOpen?.(false)}
               title={collapsed ? item.label : undefined}
               className={`
                 group relative
@@ -283,6 +289,7 @@ export default function Sidebar({
           backdrop-blur-xl
           transition
           hover:bg-white
+          hidden md:flex
         "
       >
         {collapsed ? (
